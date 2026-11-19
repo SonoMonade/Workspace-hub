@@ -1,0 +1,56 @@
+[
+  {
+    "id": 1,
+    "title": "Prompt & Workflow Builder",
+    "category": "lavoro",
+    "badge": "Lavoro",
+    "desc": "Libreria strutturata di system prompt, template per automazioni AI e checklist di controllo qualità.",
+    "status": "Aggiornato: Oggi",
+    "url": "./modules/template-modulo.html"
+  },
+  {
+    "id": 2,
+    "title": "Gestione Attività & Preventivi",
+    "category": "lavoro",
+    "badge": "Lavoro",
+    "desc": "Calcolatore rapido tariffe, scadenzario consegne e modelli di preventivo pronti all'esportazione.",
+    "status": "Operativo",
+    "url": "./modules/template-modulo.html"
+  },
+  {
+    "id": 3,
+    "title": "Ripartizione Utenze & Casa",
+    "category": "personale",
+    "badge": "Personale",
+    "desc": "Registro condiviso bollette (luce, gas, fibra), scadenze domestiche e promemoria manutenzione.",
+    "status": "In pari",
+    "url": "./modules/template-modulo.html"
+  },
+  {
+    "id": 4,
+    "title": "Archivio Botanico & Stampa",
+    "category": "hobby",
+    "badge": "Hobby",
+    "desc": "Catalogo personale con generatore di layout ottimizzati per etichette termiche e schede tecniche.",
+    "status": "42 Schede",
+    "url": "./modules/template-modulo.html"
+  },
+  {
+    "id": 5,
+    "title": "Note di Viaggio & Fotografia",
+    "category": "hobby",
+    "badge": "Hobby",
+    "desc": "Tracce itinerari, appunti sulla luce, checklist attrezzatura e selezione progetti personali.",
+    "status": "Archivio 2026",
+    "url": "./modules/template-modulo.html"
+  },
+  {
+    "id": 6,
+    "title": "Knowledge Base & Guide",
+    "category": "info",
+    "badge": "Info",
+    "desc": "Dispense, link utili, manuali rapidi e documentazione tecnica di riferimento quotidiano.",
+    "status": "Consultazione",
+    "url": "./modules/template-modulo.html"
+  }
+]
