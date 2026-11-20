@@ -1,0 +1,9 @@
+{
+  "name": "Workspace Hub",
+  "short_name": "Workspace",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#F3F5F0",
+  "theme_color": "#7C0B44",
+  "description": "Dashboard personale modulare per operatività, AI, archivi e impaginazione."
+}
