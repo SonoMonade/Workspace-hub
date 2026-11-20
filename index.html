@@ -16,7 +16,6 @@
     <div class="brand-mark">W</div>
     <nav class="nav-items" id="railNavItems"></nav>
   </aside>
-
   <div class="workspace-wrapper">
     <header class="top-bar">
       <div class="search-box">
@@ -34,7 +33,6 @@
         <button class="btn btn-primary" id="openDrawerBtn"><span>+ Nuovo Strumento</span></button>
       </div>
     </header>
-
     <main class="main-content">
       <div class="section-header">
         <div>
@@ -43,9 +41,7 @@
         </div>
         <span class="badge" id="counterBadge">0 Strumenti attivi</span>
       </div>
-
       <div class="filter-bar" id="filterBar"></div>
-
       <div class="tool-card" id="sectionPurposeCard" style="margin-bottom: 24px; padding: 18px 24px;">
         <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px;">
           <div>
@@ -55,11 +51,9 @@
           <span class="badge" id="sectionPurposeActions">Cosa puoi farci: Cerca, filtra per funzione, apri i moduli o aggiungi nuovi strumenti</span>
         </div>
       </div>
-
       <section class="tools-grid" id="toolsGrid"></section>
     </main>
   </div>
-
   <div class="drawer-overlay" id="drawerOverlay">
     <div class="side-sheet">
       <div>
@@ -100,16 +94,14 @@
       </div>
     </div>
   </div>
-
   <div class="toast-box" id="toastBox">
     <span class="toast-dot"></span>
     <span id="toastMessage">Operazione completata</span>
   </div>
-
   <script src="./assets/js/app.js"></script>
   <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function() { navigator.serviceWorker.register("./sw.js").catch(function() {}); });
     }
   </script>
 </body>

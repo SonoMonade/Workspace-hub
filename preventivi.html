@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body>
-  
+
     <div class="workspace-wrapper" style="margin-left: 0;">
       <header class="top-bar">
         <button type="button" class="btn" onclick="location.href='../index.html'">← Torna alla Dashboard</button>
@@ -31,7 +31,6 @@
           <span class="badge" id="preventiviTotalBadge">Netto: € 0,00</span>
         </div>
 
-        <!-- Riepilogo Economico e Operativo -->
         <div class="tools-grid" style="margin-bottom: 24px;">
           <div class="tool-card" style="padding: 18px 24px;">
             <span class="meta-tag">Imponibile Attività (Post-Sconto)</span>
@@ -50,7 +49,6 @@
           </div>
         </div>
 
-        <!-- 1. Intestazione Documento & Parametri Fiscali -->
         <div class="tool-card" style="margin-bottom: 24px;">
           <div class="card-top">
             <h2>1. Intestazione Preventivo &amp; Parametri Fiscali</h2>
@@ -89,7 +87,6 @@
           </div>
         </div>
 
-        <!-- 2. Form Inserimento Nuova Voce Preventivo / Attività -->
         <div class="tool-card" style="margin-bottom: 24px;">
           <h2>2. Aggiungi Voce Attività / Preventivo</h2>
           <form id="preventivoForm" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 12px;">
@@ -132,7 +129,6 @@
           </form>
         </div>
 
-        <!-- 3. Anteprima Documento Preventivo in Tempo Reale -->
         <div class="tool-card" id="preventivoLivePreviewCard" style="margin-bottom: 28px;">
           <div class="card-top">
             <h2>3. Anteprima Documento Preventivo (Pronto per Word / Google Docs)</h2>
@@ -168,7 +164,6 @@
           </div>
         </div>
 
-        <!-- Filtro stato interno -->
         <div class="filter-bar" id="prevFilterBar">
           <button type="button" class="chip active" data-prev-filter="all">Tutte le voci</button>
           <button type="button" class="chip" data-prev-filter="Preventivato">Preventivato</button>
@@ -177,7 +172,6 @@
           <button type="button" class="chip" data-prev-filter="Consegnato">Consegnato</button>
         </div>
 
-        <!-- Griglia Voci Preventivo / Attività -->
         <div class="tools-grid" id="preventiviGrid"></div>
       </main>
     </div>
@@ -187,22 +181,22 @@
     <span id="toastMessage">Operazione completata</span>
   </div>
   <script>
-    function showToast(msg) {
+function showToast(msg) {
       const toast = document.getElementById('toastBox');
       document.getElementById('toastMessage').textContent = msg;
       toast.style.display = 'flex';
       setTimeout(() => { toast.style.display = 'none'; }, 3000);
     }
-    const STORAGE_KEY_PREVENTIVI = 'ws_module_preventivi';
-        const STORAGE_KEY_PREV_CONFIG = 'ws_module_preventivi_config';
-        const defaultPreventivi = [{"id":201,"cliente":"Cliente Alpha","attivita":"Architettura Dashboard & Tassonomia","ore":6,"tariffa":55,"scadenza":"2026-11-28","stato":"Approvato"},{"id":202,"cliente":"Progetto Beta","attivita":"Sviluppo Moduli Operativi PWA","ore":10,"tariffa":60,"scadenza":"2026-12-05","stato":"In Lavorazione"}];
-        let preventiviList = [];
-        let currentPrevFilter = 'all';
-        let currentPrevClientFilter = 'all';
-        function formatCurrency(val) {
+const STORAGE_KEY_PREVENTIVI = "ws_module_preventivi";
+const STORAGE_KEY_PREV_CONFIG = "ws_module_preventivi_config";
+const defaultPreventivi = [{"id":201,"cliente":"Cliente Alpha","attivita":"Architettura Dashboard & Tassonomia","ore":6,"tariffa":55,"scadenza":"2026-11-28","stato":"Approvato"},{"id":202,"cliente":"Progetto Beta","attivita":"Sviluppo Moduli Operativi PWA","ore":10,"tariffa":60,"scadenza":"2026-12-05","stato":"In Lavorazione"}];
+let preventiviList = [];
+let currentPrevFilter = "all";
+let currentPrevClientFilter = "all";
+function formatCurrency(val) {
       return new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(val);
     }
-        function savePrevConfig() {
+function savePrevConfig() {
       const cfg = {
         docNumero: document.getElementById('prevDocNumero').value,
         scontoPerc: document.getElementById('prevScontoPerc').value,
@@ -212,7 +206,7 @@
       };
       localStorage.setItem(STORAGE_KEY_PREV_CONFIG, JSON.stringify(cfg));
     }
-        function computePreventivoFinancials(items) {
+function computePreventivoFinancials(items) {
       const scontoPerc = Math.max(0, Math.min(100, parseFloat(document.getElementById('prevScontoPerc').value) || 0));
       const ivaPerc = Math.max(0, parseFloat(document.getElementById('prevIvaPerc').value) || 0);
       const ritenutaPerc = Math.max(0, parseFloat(document.getElementById('prevRitenutaPerc').value) || 0);
@@ -235,7 +229,7 @@
         ivaPerc, ivaVal, ritenutaPerc, ritenutaVal, totaleNetto, totalOre
       };
     }
-        function exportPreventiviToWordOrDocs() {
+function exportPreventiviToWordOrDocs() {
       const docNum = document.getElementById('prevDocNumero').value.trim() || 'PREV-2026';
       const noteDoc = document.getElementById('prevNoteDoc').value.trim();
       const filteredItems = preventiviList.filter(item => {
@@ -311,7 +305,7 @@
       URL.revokeObjectURL(url);
       showToast('Preventivo .doc esportato per Word / Google Docs');
     }
-        function cyclePreventivoStatus(id) {
+function cyclePreventivoStatus(id) {
       const states = ['Preventivato', 'In Lavorazione', 'Approvato', 'Consegnato'];
       const item = preventiviList.find(p => p.id === id);
       if (!item) return;
@@ -321,14 +315,13 @@
       renderPreventiviGrid();
       showToast(`Stato aggiornato: ${item.stato}`);
     }
-        function deletePreventivoItem(id) {
+function deletePreventivoItem(id) {
       preventiviList = preventiviList.filter(p => p.id !== id);
       localStorage.setItem(STORAGE_KEY_PREVENTIVI, JSON.stringify(preventiviList));
       renderPreventiviGrid();
       showToast('Voce rimossa dal preventivo');
     }
-        function renderPreventiviGrid() {
-      // Aggiorna select filtro clienti mantenendo selezione attiva
+function renderPreventiviGrid() {
       const clientSelect = document.getElementById('prevFilterCliente');
       const uniqueClients = [...new Set(preventiviList.map(i => i.cliente))];
       clientSelect.innerHTML = '<option value="all">Tutti i clienti / progetti</option>';
@@ -363,7 +356,6 @@
           visibleItems.push(item);
           const sub = item.ore * item.tariffa;
 
-          // Card operativa
           const card = document.createElement('article');
           card.className = 'tool-card';
           card.innerHTML = `
@@ -385,7 +377,6 @@
           `;
           grid.appendChild(card);
 
-          // Riga tabella anteprima documento
           const tr = document.createElement('tr');
           tr.style.borderBottom = '2px solid var(--color-border)';
           tr.innerHTML = `
@@ -412,7 +403,6 @@
       document.getElementById('summaryCompletate').textContent = `${doneCount} / ${preventiviList.length}`;
       document.getElementById('preventiviTotalBadge').textContent = `Netto: ${formatCurrency(fin.totaleNetto)}`;
 
-      // Aggiorna intestazione e calce dell'anteprima documento
       document.getElementById('prevDocPreviewBadge').textContent = docNum;
       document.getElementById('docPreviewTitle').textContent = `Preventivo #${docNum}`;
       document.getElementById('docPreviewClient').textContent =
@@ -425,10 +415,10 @@
         <span style="color: var(--color-primary); font-size: 12pt;">Totale Netto: ${formatCurrency(fin.totaleNetto)}</span>
       `;
     }
-        function initPreventiviModule() {
+function initPreventiviModule() {
       try {
         const saved = localStorage.getItem(STORAGE_KEY_PREVENTIVI);
-        preventiviList = saved ? JSON.parse(saved) : structuredClone(defaultPreventivi);
+        preventiviList = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(defaultPreventivi));
         const savedCfg = localStorage.getItem(STORAGE_KEY_PREV_CONFIG);
         if (savedCfg) {
           const c = JSON.parse(savedCfg);
@@ -439,7 +429,7 @@
           if (c.noteDoc) document.getElementById('prevNoteDoc').value = c.noteDoc;
         }
       } catch (err) {
-        preventiviList = structuredClone(defaultPreventivi);
+        preventiviList = JSON.parse(JSON.stringify(defaultPreventivi));
       }
 
       const dateInput = document.getElementById('prevScadenza');
@@ -540,7 +530,7 @@
         showToast('Esportazione CSV completata');
       });
     }
-        window.addEventListener('DOMContentLoaded', () => { initPreventiviModule(); renderPreventiviGrid(); });
+window.addEventListener("DOMContentLoaded", function() { initPreventiviModule(); renderPreventiviGrid(); });
   </script>
 </body>
 </html>

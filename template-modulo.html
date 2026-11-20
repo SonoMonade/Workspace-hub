@@ -10,36 +10,19 @@
   <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body>
-  <div class="workspace-wrapper" style="margin-left: 0;">
-          <header class="top-bar">
-            <a href="../index.html" class="btn">← Torna alla Dashboard</a>
-            <span class="badge">Workspace Hub</span>
-          </header>
-          <main class="main-content">
-            <div class="section-header">
-              <div>
-                <h1>Modulo Operativo</h1>
-                <p>Template pronto da estendere con persistenza localStorage ed esportazione JSON/CSV.</p>
-              </div>
-            </div>
-            <div class="tool-card">
-              <h2>Pronto per lo sviluppo</h2>
-              <p class="card-desc">Collega questo modulo a una nuova chiave univoca in localStorage seguendo la struttura degli altri moduli in /modules/.</p>
-            </div>
-          </main>
-        </div>
+<div class="workspace-wrapper" style="margin-left: 0;"><header class="top-bar"><a href="../index.html" class="btn">← Torna alla Dashboard</a><span class="badge">Workspace Hub</span></header><main class="main-content"><div class="section-header"><div><h1>Modulo Operativo</h1><p>Template pronto da estendere con persistenza localStorage ed esportazione JSON/CSV.</p></div></div><div class="tool-card"><h2>Pronto per lo sviluppo</h2><p class="card-desc">Collega questo modulo a una nuova chiave univoca in localStorage seguendo la struttura degli altri moduli in /modules/.</p></div></main></div>
   <div class="toast-box" id="toastBox">
     <span class="toast-dot"></span>
     <span id="toastMessage">Operazione completata</span>
   </div>
   <script>
-    function showToast(msg) {
+function showToast(msg) {
       const toast = document.getElementById('toastBox');
       document.getElementById('toastMessage').textContent = msg;
       toast.style.display = 'flex';
       setTimeout(() => { toast.style.display = 'none'; }, 3000);
     }
-    
+
   </script>
 </body>
 </html>

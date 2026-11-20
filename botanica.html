@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body>
-  
+
     <div class="workspace-wrapper" style="margin-left: 0;">
       <header class="top-bar">
         <button type="button" class="btn" onclick="location.href='../index.html'">← Torna alla Dashboard</button>
@@ -31,7 +31,6 @@
           <span class="badge" id="botanicaCounterBadge">0 Schede</span>
         </div>
 
-        <!-- 1. Scheda Tecnica Specie & Parametri Colturali -->
         <div class="tool-card" style="margin-bottom: 24px;">
           <h2>1. Scheda Specie (Terreno, Sole, Acqua, Regione) &amp; Formato Uscita</h2>
           <form id="botanicaForm" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; margin-top: 12px;">
@@ -107,7 +106,6 @@
           </form>
         </div>
 
-        <!-- 2. Anteprima in Tempo Reale dell'Etichetta / Scheda Stampabile -->
         <div class="tool-card" style="margin-bottom: 28px;">
           <div class="card-top">
             <h2>2. Anteprima Fisica in Tempo Reale (Pronta per Stampa / Word / Docs)</h2>
@@ -142,7 +140,6 @@
           </div>
         </div>
 
-        <!-- Filtri Archivio Botanico (Ricerca + Sole) -->
         <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 20px;">
           <div class="filter-bar" style="margin-bottom: 0;" id="botSunFilterBar">
             <button type="button" class="chip active" data-bot-sun="all">Tutte le esposizioni</button>
@@ -159,7 +156,6 @@
           </div>
         </div>
 
-        <!-- Griglia Schede Botaniche -->
         <div class="tools-grid" id="botanicaGrid"></div>
       </main>
     </div>
@@ -169,17 +165,17 @@
     <span id="toastMessage">Operazione completata</span>
   </div>
   <script>
-    function showToast(msg) {
+function showToast(msg) {
       const toast = document.getElementById('toastBox');
       document.getElementById('toastMessage').textContent = msg;
       toast.style.display = 'flex';
       setTimeout(() => { toast.style.display = 'none'; }, 3000);
     }
-    const STORAGE_KEY_BOTANICA = 'ws_module_botanica';
-        const defaultBotanicaList = [{"id":401,"nomeComune":"Rosmarino Prostrato","nomeBotanico":"Salvia rosmarinus 'Prostratus'","codiceLotto":"BOT-2026-014","regione":"Lazio / Macchia Mediterranea","sole":"Pieno Sole","acqua":"Scarsa (Substrato asciutto)","freqAcqua":"1 volta ogni 7-10 gg (estate) / 20 gg (inverno)","temperature":"Min -5°C / Ottimale 18–28°C","terreno":"Sabbioso-calcareo, molto drenante (pH 7.0)","printFormat":"100x60","note":"Talea semilegnosa a fine estate; evitare ristagni idrici invernali."},{"id":402,"nomeComune":"Felce Capelvenere","nomeBotanico":"Adiantum capillus-veneris","codiceLotto":"BOT-2026-019","regione":"Umbria / Forre Umide","sole":"Ombra Luminosa","acqua":"Abbondante (Terreno umido)","freqAcqua":"2-3 volte a settimana (mantenere umido)","temperature":"Min +8°C / Ottimale 16–24°C","terreno":"Torboso-calcareo fresco, umidità costante","printFormat":"148x210","note":"Nebulizzare la chioma in estate; proteggere da correnti d'aria secca."},{"id":403,"nomeComune":"Corbezzolo","nomeBotanico":"Arbutus unedo","codiceLotto":"BOT-2026-023","regione":"Sardegna / Costa Tirrenica","sole":"Mezz'ombra","acqua":"Moderata (Regolare)","freqAcqua":"1 volta a settimana nei primi 2 anni, poi pioggia","temperature":"Min -10°C / Ottimale 15–26°C","terreno":"Sub-acido o neutro, ben drenato con humus","printFormat":"100x60","note":"Fioritura autunnale contemporanea alla maturazione dei frutti."}];
-        let botanicaList = [];
-        let currentBotSunFilter = 'all';
-        function getBotanicaVisualIcons(sole, acqua) {
+const STORAGE_KEY_BOTANICA = "ws_module_botanica";
+const defaultBotanicaList = [{"id":401,"nomeComune":"Rosmarino Prostrato","nomeBotanico":"Salvia rosmarinus 'Prostratus'","codiceLotto":"BOT-2026-014","regione":"Lazio / Macchia Mediterranea","sole":"Pieno Sole","acqua":"Scarsa (Substrato asciutto)","freqAcqua":"1 volta ogni 7-10 gg (estate) / 20 gg (inverno)","temperature":"Min -5°C / Ottimale 18–28°C","terreno":"Sabbioso-calcareo, molto drenante (pH 7.0)","printFormat":"100x60","note":"Talea semilegnosa a fine estate; evitare ristagni idrici invernali."},{"id":402,"nomeComune":"Felce Capelvenere","nomeBotanico":"Adiantum capillus-veneris","codiceLotto":"BOT-2026-019","regione":"Umbria / Forre Umide","sole":"Ombra Luminosa","acqua":"Abbondante (Terreno umido)","freqAcqua":"2-3 volte a settimana (mantenere umido)","temperature":"Min +8°C / Ottimale 16–24°C","terreno":"Torboso-calcareo fresco, umidità costante","printFormat":"148x210","note":"Nebulizzare la chioma in estate; proteggere da correnti d'aria secca."},{"id":403,"nomeComune":"Corbezzolo","nomeBotanico":"Arbutus unedo","codiceLotto":"BOT-2026-023","regione":"Sardegna / Costa Tirrenica","sole":"Mezz'ombra","acqua":"Moderata (Regolare)","freqAcqua":"1 volta a settimana nei primi 2 anni, poi pioggia","temperature":"Min -10°C / Ottimale 15–26°C","terreno":"Sub-acido o neutro, ben drenato con humus","printFormat":"100x60","note":"Fioritura autunnale contemporanea alla maturazione dei frutti."}];
+let botanicaList = [];
+let currentBotSunFilter = "all";
+function getBotanicaVisualIcons(sole, acqua) {
       const s = (sole || '').toLowerCase();
       let sunSvg = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7C0B44" stroke-width="2.2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>';
       if (s.includes('mezz')) {
@@ -205,7 +201,7 @@
         soil: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#277584" stroke-width="2.2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>'
       };
     }
-        function getBotanicaFormState() {
+function getBotanicaFormState() {
       return {
         nomeComune: document.getElementById('botNomeComune').value.trim() || 'Specie Botanica',
         nomeBotanico: document.getElementById('botNomeBotanico').value.trim() || 'Genus species',
@@ -221,7 +217,7 @@
         highContrast: document.getElementById('botHighContrastOutdoor').checked
       };
     }
-        function updateBotanicaLivePreview() {
+function updateBotanicaLivePreview() {
       const b = getBotanicaFormState();
       const [wMm, hMm] = b.printFormat.split('x').map(Number);
       const formatNames = {
@@ -254,7 +250,6 @@
       notesEl.style.display = b.printFormat === '50x30' ? 'none' : 'block';
       notesEl.textContent = b.note ? `Note: ${b.note}` : 'Note colturali: Nessuna annotazione aggiuntiva.';
 
-      // Scala visiva proporzionale al supporto selezionato
       const scale = b.printFormat === '50x30' ? 4.4 : (wMm <= 110 ? 3.6 : 2.5);
       const canvas = document.getElementById('botLiveLabelCanvas');
       canvas.style.width = `${Math.min(680, Math.max(240, Math.round(wMm * scale)))}px`;
@@ -266,7 +261,7 @@
       document.getElementById('botPrevParamsGrid').style.fontSize = `${(10 * scaleText).toFixed(1)}pt`;
       notesEl.style.fontSize = `${(8.5 * scaleText).toFixed(1)}pt`;
     }
-        function exportBotanicaToWordOrDocs() {
+function exportBotanicaToWordOrDocs() {
       const b = getBotanicaFormState();
       const [wMm, hMm] = b.printFormat.split('x').map(Number);
       const marginMm = wMm <= 100 ? 4 : 14;
@@ -318,7 +313,7 @@
       URL.revokeObjectURL(url);
       showToast('Scheda/Etichetta .doc esportata per Word e Google Docs');
     }
-        function loadBotanicaToPreview(id) {
+function loadBotanicaToPreview(id) {
       const item = botanicaList.find(p => p.id === id);
       if (!item) return;
       document.getElementById('botNomeComune').value = item.nomeComune;
@@ -336,13 +331,13 @@
       window.scrollTo(0, 0);
       showToast(`Scheda caricata nell'anteprima stampa: ${item.nomeComune}`);
     }
-        function deleteBotanicaItem(id) {
+function deleteBotanicaItem(id) {
       botanicaList = botanicaList.filter(p => p.id !== id);
       localStorage.setItem(STORAGE_KEY_BOTANICA, JSON.stringify(botanicaList));
       renderBotanicaGrid();
       showToast('Scheda botanica eliminata');
     }
-        function renderBotanicaGrid() {
+function renderBotanicaGrid() {
       const q = document.getElementById('botSearchInput').value.toLowerCase().trim();
       const grid = document.getElementById('botanicaGrid');
       grid.innerHTML = '';
@@ -391,12 +386,12 @@
 
       document.getElementById('botanicaCounterBadge').textContent = `${count} Sched${count === 1 ? 'a' : 'e'}`;
     }
-        function initBotanicaModule() {
+function initBotanicaModule() {
       try {
         const saved = localStorage.getItem(STORAGE_KEY_BOTANICA);
-        botanicaList = saved ? JSON.parse(saved) : structuredClone(defaultBotanicaList);
+        botanicaList = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(defaultBotanicaList));
       } catch (err) {
-        botanicaList = structuredClone(defaultBotanicaList);
+        botanicaList = JSON.parse(JSON.stringify(defaultBotanicaList));
       }
 
       
@@ -482,7 +477,7 @@
         showToast('Esportazione CSV botanica completata');
       });
     }
-        window.addEventListener('DOMContentLoaded', () => { initBotanicaModule(); updateBotanicaLivePreview(); renderBotanicaGrid(); });
+window.addEventListener("DOMContentLoaded", function() { initBotanicaModule(); updateBotanicaLivePreview(); renderBotanicaGrid(); });
   </script>
 </body>
 </html>

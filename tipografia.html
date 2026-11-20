@@ -10,7 +10,7 @@
   <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body>
-  
+
     <div class="workspace-wrapper" style="margin-left: 0;">
       <header class="top-bar">
         <button type="button" class="btn" onclick="location.href='../index.html'">← Torna alla Dashboard</button>
@@ -31,7 +31,6 @@
           <span class="badge" id="tipografiaRatioBadge">Scala 1.250</span>
         </div>
 
-        <!-- Parametri Scala Tipografica -->
         <div class="tool-card" style="margin-bottom: 24px;">
           <h2>1. Font Pairing, Gabbia, Griglia Tipografica &amp; Stampa</h2>
           <form id="tipografiaForm" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(185px, 1fr)); gap: 16px; margin-top: 12px;">
@@ -146,7 +145,6 @@
           </form>
         </div>
 
-        <!-- Indicatori di Controllo Graphic Design (CPL, Gabbia, Bleed, Baseline) -->
         <div class="tools-grid" style="margin-bottom: 24px;">
           <div class="tool-card" style="padding: 18px 24px;">
             <div class="card-top" style="margin-bottom: 6px;">
@@ -176,18 +174,14 @@
           </div>
         </div>
 
-        <!-- Anteprima Dal Vivo della Pagina, Bleed, Margini, Griglia e Punti Tipografici -->
         <div class="tool-card" style="margin-bottom: 28px;">
           <div class="card-top">
             <h2>2. Anteprima in Tempo Reale (Bleed, Margini, Colonne &amp; Baseline Grid)</h2>
             <span class="meta-tag" id="typoMetricsSummary">148 × 210 mm | H1: 20.5pt | Body: 10.5pt</span>
           </div>
           <div style="width: 100%; overflow-x: auto; padding: 20px 0; display: flex; justify-content: center;">
-            <!-- Area esterna di abbondanza (Bleed) -->
             <div id="typoBleedWrapper" style="border: 2px dashed var(--color-primary); border-radius: 14px; padding: 8px; background: var(--bg-canvas); display: inline-flex; flex-direction: column; align-items: center;">
-              <!-- Foglio fisico esterno (Formato Finito) -->
               <div id="typoLiveCanvas" style="border: 3px solid var(--color-primary); border-radius: 10px; background: var(--bg-canvas); transition: all 0.2s ease; overflow: hidden; display: flex; flex-direction: column;">
-                <!-- Gabbia interna delimitata dai margini -->
                 <div id="typoMarginBox" style="flex: 1; border: 2px dashed var(--color-secondary); border-radius: 6px; padding: 14px; display: flex; flex-direction: column; justify-content: space-between;">
                   <div>
                     <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px; padding-bottom: 10px; margin-bottom: 14px; border-bottom: 3px solid var(--color-border);">
@@ -197,7 +191,6 @@
                     <div id="previewH1" style="font-weight: 700; color: var(--color-primary); margin-bottom: 8px;">Titolo Principale della Pagina (H1)</div>
                     <div id="previewH2" style="font-weight: 700; color: var(--color-secondary); margin-bottom: 8px;">Sottotitolo Operativo e Gerarchia (H2)</div>
                     <div id="previewH3" style="font-weight: 700; color: var(--color-ink); margin-bottom: 12px;">Occhiello / Titolo Terzo Livello (H3)</div>
-                    <!-- Contenitore griglia a colonne -->
                     <div id="previewColumnsContainer" style="display: grid; grid-template-columns: 1fr; gap: 14px; margin-bottom: 14px;"></div>
                   </div>
                   <div id="previewCaption" style="font-weight: 600; color: var(--color-secondary); padding-top: 8px; border-top: 2px solid var(--color-border);">DIDASCALIA / NOTE A PIÈ DI PAGINA — UNITÀ IN PT</div>
@@ -207,7 +200,6 @@
           </div>
         </div>
 
-        <!-- Libreria Preset Salvati -->
         <div class="section-header">
           <h2>Preset Tipografici Salvati</h2>
           <span class="badge" id="typoPresetCounter">0 Preset</span>
@@ -221,17 +213,17 @@
     <span id="toastMessage">Operazione completata</span>
   </div>
   <script>
-    function showToast(msg) {
+function showToast(msg) {
       const toast = document.getElementById('toastBox');
       document.getElementById('toastMessage').textContent = msg;
       toast.style.display = 'flex';
       setTimeout(() => { toast.style.display = 'none'; }, 3000);
     }
-    const STORAGE_KEY_TIPOGRAFIA = 'ws_module_tipografia';
-        const defaultTipografiaPresets = [{"id":301,"name":"Scheda Editoriale A5","fontHeading":"Playfair Display","fontFamily":"Plus Jakarta Sans","pagePreset":"148x210","pageWidth":148,"pageHeight":210,"bleed":3,"marginTB":18,"marginLR":16,"columns":1,"gutter":5,"basePt":10.5,"ratio":1.25,"lineHeight":1.45,"headingTracking":-0.02},{"id":302,"name":"Scheda Tecnica 2 Colonne A4","fontHeading":"Montserrat","fontFamily":"Lora","pagePreset":"210x297","pageWidth":210,"pageHeight":297,"bleed":3,"marginTB":20,"marginLR":20,"columns":2,"gutter":6,"basePt":10,"ratio":1.25,"lineHeight":1.4,"headingTracking":-0.01}];
-        let tipografiaPresets = [];
-        const loadedGoogleFonts = new Set(['Plus Jakarta Sans']);
-        function ensureGoogleFontLoaded(fontName) {
+const STORAGE_KEY_TIPOGRAFIA = "ws_module_tipografia";
+const defaultTipografiaPresets = [{"id":301,"name":"Scheda Editoriale A5","fontHeading":"Playfair Display","fontFamily":"Plus Jakarta Sans","pagePreset":"148x210","pageWidth":148,"pageHeight":210,"bleed":3,"marginTB":18,"marginLR":16,"columns":1,"gutter":5,"basePt":10.5,"ratio":1.25,"lineHeight":1.45,"headingTracking":-0.02},{"id":302,"name":"Scheda Tecnica 2 Colonne A4","fontHeading":"Montserrat","fontFamily":"Lora","pagePreset":"210x297","pageWidth":210,"pageHeight":297,"bleed":3,"marginTB":20,"marginLR":20,"columns":2,"gutter":6,"basePt":10,"ratio":1.25,"lineHeight":1.4,"headingTracking":-0.01}];
+let tipografiaPresets = [];
+const loadedGoogleFonts = new Set(["Plus Jakarta Sans"]);
+function ensureGoogleFontLoaded(fontName) {
       const cleanName = (fontName || '').trim();
       if (!cleanName || loadedGoogleFonts.has(cleanName)) return;
       const systemFonts = ['Georgia', 'Times New Roman', 'Arial', 'Helvetica', 'Courier New', 'monospace', 'sans-serif', 'serif'];
@@ -243,7 +235,7 @@
       document.head.appendChild(link);
       loadedGoogleFonts.add(cleanName);
     }
-        function computeScaleValues() {
+function computeScaleValues() {
       const fontHeading = document.getElementById('typoFontHeading').value.trim() || 'Playfair Display';
       const fontFamily = document.getElementById('typoFontFamily').value.trim() || 'Plus Jakarta Sans';
       const pageWidth = Math.max(30, parseFloat(document.getElementById('typoPageWidth').value) || 148);
@@ -260,24 +252,19 @@
       const showBaseline = document.getElementById('typoShowBaseline').checked;
       const sampleContent = document.getElementById('typoSampleContent').value;
 
-      // Scala completa in punti tipografici (pt)
       const captionPt = +(basePt / ratio).toFixed(1);
       const bodyPt = +basePt.toFixed(1);
       const h3Pt = +(basePt * ratio).toFixed(1);
       const h2Pt = +(basePt * Math.pow(ratio, 2)).toFixed(1);
       const h1Pt = +(basePt * Math.pow(ratio, 3)).toFixed(1);
 
-      // Calcolo gabbia utile e larghezza singola colonna in mm
       const usableWidth = Math.max(10, +(pageWidth - marginLR * 2).toFixed(1));
       const usableHeight = Math.max(10, +(pageHeight - marginTB * 2).toFixed(1));
       const totalGutter = gutter * (columns - 1);
       const columnWidthMm = Math.max(5, +((usableWidth - totalGutter) / columns).toFixed(1));
 
-      // Stima giustezza (Characters Per Line): larghezza colonna in pt / larghezza media glifo (~0.48 * bodyPt)
       const columnWidthPt = columnWidthMm * 2.83465;
       const estimatedCpl = Math.max(8, Math.round(columnWidthPt / (bodyPt * 0.48)));
-
-      // Passo della griglia di base (Baseline step in pt)
       const baselinePt = +(bodyPt * lineHeight).toFixed(1);
 
       return {
@@ -287,12 +274,11 @@
         estimatedCpl, baselinePt
       };
     }
-        function updateTipografiaLivePreview() {
+function updateTipografiaLivePreview() {
       const s = computeScaleValues();
       ensureGoogleFontLoaded(s.fontHeading);
       ensureGoogleFontLoaded(s.fontFamily);
 
-      // Aggiornamento indicatori di controllo graphic design
       document.getElementById('tipografiaRatioBadge').textContent = `Scala ${s.ratio.toFixed(3)}`;
       document.getElementById('cplValueDisplay').textContent = `~${s.estimatedCpl} caratteri/riga`;
       document.getElementById('cplDetailDisplay').textContent = `Larghezza singola colonna: ${s.columnWidthMm} mm (Gutter: ${s.gutter} mm)`;
@@ -324,7 +310,6 @@
       document.getElementById('previewGridBadge').textContent =
         `${s.columns} Col · Gutter ${s.gutter}mm · Margini ${s.marginTB}/${s.marginLR}mm`;
 
-      // Scala proporzionale del foglio nell'anteprima (1 mm ≈ 2.6 px)
       const scaleFactor = 2.6;
       const renderedWidth = Math.min(760, Math.max(250, Math.round(s.pageWidth * scaleFactor)));
       const renderedHeight = Math.min(920, Math.max(180, Math.round(s.pageHeight * scaleFactor)));
@@ -344,7 +329,6 @@
       canvas.style.padding = `${padTB}px ${padLR}px`;
       canvas.style.fontFamily = `'${s.fontFamily}', 'Plus Jakarta Sans', sans-serif`;
 
-      // Griglia di base visibile (Baseline Grid) nel box interno
       const marginBox = document.getElementById('typoMarginBox');
       if (s.showBaseline) {
         const stepPx = Math.max(10, Math.round(s.baselinePt * 1.3333));
@@ -417,7 +401,7 @@
       pCap.style.fontSize = `${s.captionPt}pt`;
       pCap.style.fontFamily = `'${s.fontFamily}', sans-serif`;
     }
-        function exportToWordOrGoogleDocs() {
+function exportToWordOrGoogleDocs() {
       const s = computeScaleValues();
       const presetTitle = document.getElementById('typoPresetName').value.trim() || `Impaginazione_${s.pageWidth}x${s.pageHeight}mm`;
 
@@ -499,7 +483,7 @@
       URL.revokeObjectURL(url);
       showToast('File .doc esportato (apribile in Word e Google Docs)');
     }
-        function loadTipografiaPreset(id) {
+function loadTipografiaPreset(id) {
       const p = tipografiaPresets.find(item => item.id === id);
       if (!p) return;
       document.getElementById('typoFontHeading').value = p.fontHeading || 'Playfair Display';
@@ -519,13 +503,13 @@
       updateTipografiaLivePreview();
       showToast(`Caricato preset: ${p.name}`);
     }
-        function deleteTipografiaPreset(id) {
+function deleteTipografiaPreset(id) {
       tipografiaPresets = tipografiaPresets.filter(item => item.id !== id);
       localStorage.setItem(STORAGE_KEY_TIPOGRAFIA, JSON.stringify(tipografiaPresets));
       renderTipografiaPresets();
       showToast('Preset tipografico eliminato');
     }
-        function renderTipografiaPresets() {
+function renderTipografiaPresets() {
       const grid = document.getElementById('tipografiaGrid');
       grid.innerHTML = '';
       tipografiaPresets.forEach(p => {
@@ -554,12 +538,12 @@
       });
       document.getElementById('typoPresetCounter').textContent = `${tipografiaPresets.length} Preset`;
     }
-        function initTipografiaModule() {
+function initTipografiaModule() {
       try {
         const saved = localStorage.getItem(STORAGE_KEY_TIPOGRAFIA);
-        tipografiaPresets = saved ? JSON.parse(saved) : structuredClone(defaultTipografiaPresets);
+        tipografiaPresets = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(defaultTipografiaPresets));
       } catch (err) {
-        tipografiaPresets = structuredClone(defaultTipografiaPresets);
+        tipografiaPresets = JSON.parse(JSON.stringify(defaultTipografiaPresets));
       }
 
       
@@ -697,7 +681,7 @@
         showToast('Esportazione CSV completata');
       });
     }
-        window.addEventListener('DOMContentLoaded', () => { initTipografiaModule(); updateTipografiaLivePreview(); renderTipografiaPresets(); });
+window.addEventListener("DOMContentLoaded", function() { initTipografiaModule(); updateTipografiaLivePreview(); renderTipografiaPresets(); });
   </script>
 </body>
 </html>
