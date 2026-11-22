@@ -2,8 +2,10 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#7C0B44">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <title>Workspace Hub — Accesso Personale</title>
   <link rel="manifest" href="./manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,7 +13,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./style.css">
   <style>
-    /* Schermata di Accesso Singolo Account */
+    /* Porta di Accesso e Registrazione Responsive (Mobile, Tablet, Desktop) */
     .auth-gate {
       position: fixed;
       inset: 0;
@@ -20,27 +22,30 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 20px;
+      padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)) 16px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
     .auth-gate.hidden {
       display: none;
     }
     .auth-card {
       width: 100%;
-      max-width: 420px;
+      max-width: 440px;
       background-color: var(--bg-canvas);
       border: 3px solid var(--color-primary);
       border-radius: 20px;
-      padding: 32px 28px;
+      padding: 24px 20px;
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      gap: 16px;
+      margin: auto;
     }
     .auth-header {
       display: flex;
       align-items: center;
       gap: 14px;
-      padding-bottom: 16px;
+      padding-bottom: 14px;
       border-bottom: 3px solid var(--color-border);
     }
     .auth-error {
@@ -49,48 +54,89 @@
       font-size: 9pt;
       display: none;
     }
+    .auth-info-box {
+      background-color: var(--bg-canvas);
+      border: 2px dashed var(--color-secondary);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 9pt;
+    }
+    .otp-input {
+      text-align: center;
+      font-size: 16pt !important;
+      font-weight: 700;
+      letter-spacing: 0.3em;
+    }
+    @media (max-width: 480px) {
+      .auth-card {
+        padding: 20px 16px;
+        border-radius: 16px;
+      }
+    }
   </style>
 </head>
 <body>
-  <!-- PORTA DI ACCESSO SINGOLO ACCOUNT -->
+  <!-- PORTA DI ACCESSO E REGISTRAZIONE CON CONFERMA EMAIL -->
   <div class="auth-gate" id="authGate">
     <div class="auth-card">
       <div class="auth-header">
         <div class="brand-mark" style="margin-bottom: 0; flex-shrink: 0;">W</div>
         <div>
           <h1 id="authTitle">Workspace Personale</h1>
-          <p id="authSubtitle" style="font-size: 9pt;">Accesso riservato al singolo account</p>
+          <p id="authSubtitle" style="font-size: 9pt;">Registrazione e accesso verificato via email</p>
         </div>
       </div>
 
-      <!-- Form Primo Avvio (Creazione Password/PIN) -->
-      <form id="authSetupForm" style="display: none; flex-direction: column; gap: 14px;">
-        <p>Imposta una <strong>Password o un PIN personale</strong> per proteggere l'accesso al tuo Workspace.</p>
+      <!-- STEP 1: Registrazione con Email -->
+      <form id="authRegisterForm" style="display: none; flex-direction: column; gap: 12px;">
+        <p>Registra il tuo account personale. Ti invieremo un <strong>codice di conferma</strong> all'indirizzo email indicato.</p>
         <div class="form-group" style="margin-bottom: 0;">
-          <label for="setupOwnerName">Nome Profilo (opzionale)</label>
-          <input type="text" id="setupOwnerName" class="form-control" value="SonoMonade" placeholder="Il tuo nome">
+          <label for="regOwnerName">Nome / Profilo</label>
+          <input type="text" id="regOwnerName" class="form-control" required value="SonoMonade" placeholder="Il tuo nome">
         </div>
         <div class="form-group" style="margin-bottom: 0;">
-          <label for="setupPasscode">Nuova Password / PIN</label>
-          <input type="password" id="setupPasscode" class="form-control" required minlength="4" placeholder="Minimo 4 caratteri">
+          <label for="regEmail">Indirizzo Email</label>
+          <input type="email" id="regEmail" class="form-control" inputmode="email" autocomplete="email" required placeholder="nome@esempio.it">
         </div>
         <div class="form-group" style="margin-bottom: 0;">
-          <label for="setupPasscodeConfirm">Conferma Password / PIN</label>
-          <input type="password" id="setupPasscodeConfirm" class="form-control" required minlength="4" placeholder="Ripeti password o PIN">
+          <label for="regPasscode">Crea Password</label>
+          <input type="password" id="regPasscode" class="form-control" autocomplete="new-password" required minlength="4" placeholder="Minimo 4 caratteri">
         </div>
-        <span class="auth-error" id="setupErrorMsg">Le password non coincidono.</span>
-        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 4px;"><span>Attiva Protezione & Entra →</span></button>
+        <span class="auth-error" id="regErrorMsg">Inserisci una email valida e una password di almeno 4 caratteri.</span>
+        <button type="submit" class="btn btn-primary" id="regSubmitBtn" style="width: 100%; margin-top: 4px;"><span>Invia Richiesta & Codice Email →</span></button>
       </form>
 
-      <!-- Form Sblocco Account Esistente -->
-      <form id="authLoginForm" style="display: none; flex-direction: column; gap: 14px;">
-        <p>Bentornato <strong id="loginOwnerBadge">SonoMonade</strong>. Inserisci la tua chiave di accesso per sbloccare gli strumenti.</p>
-        <div class="form-group" style="margin-bottom: 0;">
-          <label for="loginPasscode">Password / PIN Personale</label>
-          <input type="password" id="loginPasscode" class="form-control" required placeholder="Inserisci password o PIN" autofocus>
+      <!-- STEP 2: Conferma Codice Ricevuto via Email (OTP) -->
+      <form id="authVerifyForm" style="display: none; flex-direction: column; gap: 12px;">
+        <p>Abbiamo inviato un codice di conferma a 6 cifre all'indirizzo <strong id="verifyTargetEmail"></strong>.</p>
+        <div class="auth-info-box" id="otpSandboxNotice" style="display: none;">
+          <strong>Modalità Test Email attiva:</strong> non hai ancora collegato EmailJS. Il tuo codice di conferma è: <strong id="otpSandboxCode" style="color: var(--color-primary);"></strong>
         </div>
-        <span class="auth-error" id="loginErrorMsg">Password o PIN non corretto. Riprova.</span>
-        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 4px;"><span>Sblocca Workspace →</span></button>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="verifyOtpInput">Codice di Conferma (6 cifre)</label>
+          <input type="text" id="verifyOtpInput" class="form-control otp-input" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" required placeholder="000000">
+        </div>
+        <span class="auth-error" id="verifyErrorMsg">Il codice inserito non è corretto. Controlla la tua email.</span>
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 4px;"><span>Conferma Email & Attiva Account →</span></button>
+        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin-top: 4px;">
+          <button type="button" class="btn" id="resendOtpBtn" style="flex: 1 1 130px; font-size: 9pt;">Reinvia Codice</button>
+          <button type="button" class="btn" id="backToRegisterBtn" style="flex: 1 1 130px; font-size: 9pt;">Cambia Email</button>
+        </div>
+      </form>
+
+      <!-- STEP 3: Login Account Verificato -->
+      <form id="authLoginForm" style="display: none; flex-direction: column; gap: 12px;">
+        <p>Account verificato: <strong id="loginEmailBadge"></strong></p>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="loginEmailInput">Email</label>
+          <input type="email" id="loginEmailInput" class="form-control" inputmode="email" autocomplete="email" required placeholder="nome@esempio.it">
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="loginPasscode">Password</label>
+          <input type="password" id="loginPasscode" class="form-control" autocomplete="current-password" required placeholder="Inserisci la tua password">
+        </div>
+        <span class="auth-error" id="loginErrorMsg">Email o password non corretti. Riprova.</span>
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 4px;"><span>Accedi al Workspace →</span></button>
       </form>
     </div>
   </div>
@@ -107,10 +153,10 @@
           <circle cx="11" cy="11" r="8"></circle>
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
-        <input type="text" id="searchInput" placeholder="Cerca strumento, funzione o tag...">
+        <input type="search" id="searchInput" placeholder="Cerca strumento, funzione o tag...">
       </div>
       <div class="top-actions">
-        <span class="meta-tag" id="schemaVersionTag">v2.4.0</span>
+        <span class="meta-tag" id="schemaVersionTag">v2.5.0</span>
         <button class="btn btn-cloud" id="openCloudDrawerBtn">☁️ Cloud GitHub</button>
         <button class="btn" id="lockWorkspaceBtn" title="Blocca schermata">🔒 Blocca</button>
         <input type="file" id="importJsonInput" accept=".json" style="display: none;">
@@ -124,16 +170,16 @@
       <div class="section-header">
         <div>
           <h1>Workspace Hub</h1>
-          <p id="welcomeUserSubtitle">Strumenti personali organizzati per funzione d'uso</p>
+          <p id="welcomeUserSubtitle">Area privata di SonoMonade • Strumenti organizzati per funzione d'uso</p>
         </div>
         <span class="badge" id="counterBadge">0 Strumenti attivi</span>
       </div>
 
       <div class="filter-bar" id="filterBar"></div>
 
-      <div class="tool-card" id="sectionPurposeCard" style="margin-bottom: 24px; padding: 18px 24px;">
+      <div class="tool-card" id="sectionPurposeCard" style="margin-bottom: 24px; padding: 18px 20px;">
         <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px;">
-          <div>
+          <div style="flex: 1 1 260px;">
             <h2 id="sectionPurposeTitle" style="margin-bottom: 4px;">Panoramica Completa del Workspace</h2>
             <p id="sectionPurposeDesc">A cosa serve: Riunisce in un unico hub tutti gli strumenti operativi, di automazione AI, archiviazione e didattica.</p>
           </div>
@@ -217,11 +263,23 @@
           <button type="button" class="btn btn-primary" id="pushToGithubCloudBtn" style="width: 100%;"><span>↑ Salva Tutti i Dati sul Cloud</span></button>
           <button type="button" class="btn" id="pullFromGithubCloudBtn" style="width: 100%;">↓ Scarica Dati dal Cloud</button>
         </div>
+
+        <!-- Configurazione Invio Email Reale (EmailJS Gratuito) -->
+        <div style="margin-top: 20px; padding-top: 16px; border-top: 3px solid var(--color-border);">
+          <h2 style="font-size: 11pt;">✉️ Servizio Invio Email (EmailJS)</h2>
+          <p style="font-size: 8.5pt; margin-bottom: 10px;">Opzionale: inserisci le chiavi gratuite di <strong>emailjs.com</strong> per spedire realmente l'email di conferma.</p>
+          <form id="emailServiceForm" style="display: flex; flex-direction: column; gap: 10px;">
+            <input type="text" id="ejsServiceId" class="form-control" placeholder="Service ID (es. service_xxxxx)">
+            <input type="text" id="ejsTemplateId" class="form-control" placeholder="Template ID (es. template_xxxxx)">
+            <input type="text" id="ejsPublicKey" class="form-control" placeholder="Public Key (es. user_xxxxx)">
+            <button type="submit" class="btn" style="width: 100%;">Salva Chiavi Email</button>
+          </form>
+        </div>
       </div>
 
       <div style="margin-top: 24px; padding-top: 16px; border-top: 3px solid var(--color-border); display: flex; flex-direction: column; gap: 10px;">
         <span class="meta-tag" id="cloudLastSyncLabel">Stato: Pronto</span>
-        <button type="button" class="btn" id="changePasscodeBtn" style="width: 100%;">Cambia Password / PIN Account</button>
+        <button type="button" class="btn" id="changePasscodeBtn" style="width: 100%;">Reimposta Registrazione Account</button>
       </div>
     </div>
   </div>
@@ -232,9 +290,10 @@
   </div>
 
   <script>
-    // --- GESTIONE ACCESSO SINGOLO ACCOUNT (SHA-256) ---
     const AUTH_KEY = 'ws_single_account_auth';
+    const PENDING_AUTH_KEY = 'ws_pending_email_verification';
     const SESSION_UNLOCK_KEY = 'ws_session_unlocked';
+    const EMAILJS_CFG_KEY = 'ws_emailjs_cfg';
 
     async function hashPasscode(text) {
       if (window.crypto && window.crypto.subtle) {
@@ -246,70 +305,184 @@
       return btoa(unescape(encodeURIComponent(text.trim())));
     }
 
+    function generateSixDigitOtp() {
+      return String(Math.floor(100000 + Math.random() * 900000));
+    }
+
+    async function dispatchConfirmationEmail(toEmail, ownerName, otpCode) {
+      let ejsCfg = {};
+      try {
+        ejsCfg = JSON.parse(localStorage.getItem(EMAILJS_CFG_KEY) || '{}');
+      } catch (e) {}
+
+      if (ejsCfg.serviceId && ejsCfg.templateId && ejsCfg.publicKey) {
+        try {
+          const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              service_id: ejsCfg.serviceId,
+              template_id: ejsCfg.templateId,
+              user_id: ejsCfg.publicKey,
+              template_params: {
+                to_email: toEmail,
+                to_name: ownerName,
+                otp_code: otpCode,
+                app_name: 'Workspace Hub'
+              }
+            })
+          });
+          if (response.ok) return { sentRealEmail: true };
+        } catch (err) {}
+      }
+      return { sentRealEmail: false };
+    }
+
     function initAuthGate() {
       const gate = document.getElementById('authGate');
-      const setupForm = document.getElementById('authSetupForm');
+      const regForm = document.getElementById('authRegisterForm');
+      const verifyForm = document.getElementById('authVerifyForm');
       const loginForm = document.getElementById('authLoginForm');
+
       const authDataRaw = localStorage.getItem(AUTH_KEY);
+      const pendingRaw = localStorage.getItem(PENDING_AUTH_KEY);
 
       if (sessionStorage.getItem(SESSION_UNLOCK_KEY) === 'true' && authDataRaw) {
         gate.classList.add('hidden');
         const authData = JSON.parse(authDataRaw);
-        if (authData.owner) {
-          document.getElementById('welcomeUserSubtitle').textContent = `Area privata di ${authData.owner} • Strumenti organizzati per funzione d'uso`;
-        }
+        document.getElementById('welcomeUserSubtitle').textContent =
+          `Account verificato: ${authData.email} (${authData.owner})`;
         return;
       }
 
       gate.classList.remove('hidden');
-      if (!authDataRaw) {
-        document.getElementById('authTitle').textContent = 'Configura Account';
-        document.getElementById('authSubtitle').textContent = 'Primo accesso: imposta la tua chiave personale';
-        setupForm.style.display = 'flex';
-        loginForm.style.display = 'none';
+      regForm.style.display = 'none';
+      verifyForm.style.display = 'none';
+      loginForm.style.display = 'none';
+
+      if (pendingRaw) {
+        const pending = JSON.parse(pendingRaw);
+        document.getElementById('authTitle').textContent = 'Conferma la tua Email';
+        document.getElementById('authSubtitle').textContent = 'Inserisci il codice ricevuto via posta';
+        document.getElementById('verifyTargetEmail').textContent = pending.email;
+
+        const sandboxBox = document.getElementById('otpSandboxNotice');
+        if (!pending.sentRealEmail) {
+          sandboxBox.style.display = 'block';
+          document.getElementById('otpSandboxCode').textContent = pending.otp;
+        } else {
+          sandboxBox.style.display = 'none';
+        }
+        verifyForm.style.display = 'flex';
+      } else if (!authDataRaw) {
+        document.getElementById('authTitle').textContent = 'Registrazione Account';
+        document.getElementById('authSubtitle').textContent = 'Richiedi accesso con conferma email';
+        regForm.style.display = 'flex';
       } else {
         const authData = JSON.parse(authDataRaw);
         document.getElementById('authTitle').textContent = 'Accesso Riservato';
-        document.getElementById('authSubtitle').textContent = 'Inserisci la tua password o PIN';
-        document.getElementById('loginOwnerBadge').textContent = authData.owner || 'SonoMonade';
-        setupForm.style.display = 'none';
+        document.getElementById('authSubtitle').textContent = 'Inserisci email e password registrate';
+        document.getElementById('loginEmailBadge').textContent = authData.email || authData.owner;
+        document.getElementById('loginEmailInput').value = authData.email || '';
         loginForm.style.display = 'flex';
       }
     }
 
-    document.getElementById('authSetupForm').addEventListener('submit', async (e) => {
+    document.getElementById('authRegisterForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const owner = document.getElementById('setupOwnerName').value.trim() || 'SonoMonade';
-      const p1 = document.getElementById('setupPasscode').value;
-      const p2 = document.getElementById('setupPasscodeConfirm').value;
-      const errEl = document.getElementById('setupErrorMsg');
+      const owner = document.getElementById('regOwnerName').value.trim() || 'SonoMonade';
+      const email = document.getElementById('regEmail').value.trim().toLowerCase();
+      const pass = document.getElementById('regPasscode').value;
+      const errEl = document.getElementById('regErrorMsg');
 
-      if (p1 !== p2) {
+      if (!email.includes('@') || pass.length < 4) {
         errEl.style.display = 'block';
         return;
       }
       errEl.style.display = 'none';
-      const hash = await hashPasscode(p1);
-      localStorage.setItem(AUTH_KEY, JSON.stringify({ owner, hash }));
+
+      const btn = document.getElementById('regSubmitBtn');
+      btn.disabled = true;
+
+      const otp = generateSixDigitOtp();
+      const hash = await hashPasscode(pass);
+      const emailResult = await dispatchConfirmationEmail(email, owner, otp);
+
+      localStorage.setItem(PENDING_AUTH_KEY, JSON.stringify({
+        owner,
+        email,
+        hash,
+        otp,
+        sentRealEmail: emailResult.sentRealEmail,
+        createdAt: Date.now()
+      }));
+
+      btn.disabled = false;
+      e.target.reset();
+      initAuthGate();
+      showToast(emailResult.sentRealEmail
+        ? `Email di conferma inviata a ${email}`
+        : `Codice di verifica generato per ${email}`);
+    });
+
+    document.getElementById('authVerifyForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const enteredOtp = document.getElementById('verifyOtpInput').value.trim();
+      const errEl = document.getElementById('verifyErrorMsg');
+      const pending = JSON.parse(localStorage.getItem(PENDING_AUTH_KEY) || 'null');
+
+      if (!pending || enteredOtp !== pending.otp) {
+        errEl.style.display = 'block';
+        return;
+      }
+
+      errEl.style.display = 'none';
+      localStorage.setItem(AUTH_KEY, JSON.stringify({
+        owner: pending.owner,
+        email: pending.email,
+        hash: pending.hash,
+        verified: true,
+        verifiedAt: new Date().toISOString()
+      }));
+      localStorage.removeItem(PENDING_AUTH_KEY);
       sessionStorage.setItem(SESSION_UNLOCK_KEY, 'true');
       e.target.reset();
       initAuthGate();
-      showToast(`Benvenuto ${owner}! Accesso protetto attivato.`);
+      showToast(`Email ${pending.email} confermata! Benvenuto.`);
+    });
+
+    document.getElementById('resendOtpBtn').addEventListener('click', async () => {
+      const pending = JSON.parse(localStorage.getItem(PENDING_AUTH_KEY) || 'null');
+      if (!pending) return;
+      const newOtp = generateSixDigitOtp();
+      const emailResult = await dispatchConfirmationEmail(pending.email, pending.owner, newOtp);
+      pending.otp = newOtp;
+      pending.sentRealEmail = emailResult.sentRealEmail;
+      localStorage.setItem(PENDING_AUTH_KEY, JSON.stringify(pending));
+      initAuthGate();
+      showToast('Nuovo codice di conferma inviato');
+    });
+
+    document.getElementById('backToRegisterBtn').addEventListener('click', () => {
+      localStorage.removeItem(PENDING_AUTH_KEY);
+      initAuthGate();
     });
 
     document.getElementById('authLoginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
+      const inputEmail = document.getElementById('loginEmailInput').value.trim().toLowerCase();
       const inputPass = document.getElementById('loginPasscode').value;
       const errEl = document.getElementById('loginErrorMsg');
       const authData = JSON.parse(localStorage.getItem(AUTH_KEY) || '{}');
       const inputHash = await hashPasscode(inputPass);
 
-      if (inputHash === authData.hash) {
+      const emailMatches = !authData.email || inputEmail === authData.email.toLowerCase();
+      if (emailMatches && inputHash === authData.hash) {
         errEl.style.display = 'none';
         sessionStorage.setItem(SESSION_UNLOCK_KEY, 'true');
         e.target.reset();
         initAuthGate();
-        showToast('Workspace sbloccato');
+        showToast('Accesso effettuato');
       } else {
         errEl.style.display = 'block';
       }
@@ -323,10 +496,21 @@
 
     document.getElementById('changePasscodeBtn').addEventListener('click', () => {
       localStorage.removeItem(AUTH_KEY);
+      localStorage.removeItem(PENDING_AUTH_KEY);
       sessionStorage.removeItem(SESSION_UNLOCK_KEY);
       document.getElementById('cloudDrawerOverlay').classList.remove('open');
       initAuthGate();
-      showToast('Imposta la nuova Password / PIN');
+      showToast('Registrazione azzerata: inserisci la nuova email');
+    });
+
+    document.getElementById('emailServiceForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      localStorage.setItem(EMAILJS_CFG_KEY, JSON.stringify({
+        serviceId: document.getElementById('ejsServiceId').value.trim(),
+        templateId: document.getElementById('ejsTemplateId').value.trim(),
+        publicKey: document.getElementById('ejsPublicKey').value.trim()
+      }));
+      showToast('Configurazione invio email salvata');
     });
 
     // --- LOGICA DASHBOARD E MODULI ---
@@ -339,7 +523,7 @@
     };
 
     const BUILTIN_DEFAULT_DATA = {
-      version: "2.4.0",
+      version: "2.5.0",
       sections: [
         {
           id: "operativita",
@@ -485,7 +669,7 @@
         }
       } catch (e) {}
 
-      document.getElementById('schemaVersionTag').textContent = 'v' + (workspaceState.version || '2.4.0');
+      document.getElementById('schemaVersionTag').textContent = 'v' + (workspaceState.version || '2.5.0');
       loadCloudConfig();
       renderNavigationAndFilters();
       renderGrid();
@@ -570,6 +754,11 @@
         if (cfg.repo) document.getElementById('ghRepo').value = cfg.repo;
         if (cfg.token) document.getElementById('ghToken').value = cfg.token;
         if (cfg.lastSync) document.getElementById('cloudLastSyncLabel').textContent = 'Ultimo sync: ' + cfg.lastSync;
+
+        const ejs = JSON.parse(localStorage.getItem(EMAILJS_CFG_KEY) || '{}');
+        if (ejs.serviceId) document.getElementById('ejsServiceId').value = ejs.serviceId;
+        if (ejs.templateId) document.getElementById('ejsTemplateId').value = ejs.templateId;
+        if (ejs.publicKey) document.getElementById('ejsPublicKey').value = ejs.publicKey;
       } catch (e) {}
     }
 
@@ -743,6 +932,3 @@
   </script>
 </body>
 </html>
-```
-
-Puoi già provare la nuova schermata di accesso nell'anteprima qui a destra e, appena ti convince, caricare questo **`index.html`** aggiornato nel tuo repository `Workspace-hub`.
