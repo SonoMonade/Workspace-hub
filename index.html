@@ -9,7 +9,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="./assets/css/style.css">
+  <!-- Foglio di stile nella stessa cartella -->
+  <link rel="stylesheet" href="./style.css">
 </head>
 <body>
   <aside class="nav-rail">
@@ -89,14 +90,14 @@
             <input type="text" id="toolStatus" class="form-control" placeholder="Es. Operativo">
           </div>
           <div class="form-group">
-            <label for="toolUrl">Percorso Modulo</label>
-            <input type="text" id="toolUrl" class="form-control" value="./modules/template-modulo.html">
+            <label for="toolUrl">File Modulo (nella stessa cartella)</label>
+            <input type="text" id="toolUrl" class="form-control" value="./template-modulo.html">
           </div>
           <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;"><span>Salva nel Browser</span></button>
         </form>
       </div>
       <div style="margin-top: 24px; padding-top: 16px; border-top: 3px solid #D2D4D0;">
-        <button type="button" class="btn" id="resetDefaultBtn" style="width: 100%;">Sincronizza con data/tools.json</button>
+        <button type="button" class="btn" id="resetDefaultBtn" style="width: 100%;">Sincronizza con tools.json</button>
       </div>
     </div>
   </div>
@@ -106,7 +107,8 @@
     <span id="toastMessage">Operazione completata</span>
   </div>
 
-  <script src="./assets/js/app.js"></script>
+  <!-- Script nella stessa cartella -->
+  <script src="./app.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
