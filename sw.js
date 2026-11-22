@@ -9,7 +9,8 @@ const ASSETS_TO_CACHE = [
   './template-modulo.html',
   './prompt-builder.html',
   './preventivi.html',
-  './tipografia.html'
+  './tipografia.html',
+  './botanica.html'
 ];
 
 self.addEventListener('install', event => {
