@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Archivio Botanico & Stampa — Workspace Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css">
+  <style>
+    /* Stili dedicati all'anteprima etichetta termica e alla stampa */
+    .label-preview-wrapper {
+      display: flex;
+      justify-content: center;
+      padding: 16px;
+      background-color: var(--bg-canvas);
+      border: 3px dashed var(--color-border);
+      border-radius: 16px;
+    }
+    .thermal-label {
+      width: 340px;
+      max-width: 100%;
+      min-height: 190px;
+      background-color: var(--bg-canvas);
+      border: 3px solid var(--color-ink);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .thermal-label-header {
+      border-bottom: 3px solid var(--color-ink);
+      padding-bottom: 8px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+    }
+    .thermal-scientific {
+      font-style: italic;
+      font-weight: 600;
+      color: var(--color-secondary);
+      font-size: 9pt;
+    }
+    .thermal-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .thermal-cell {
+      border: 2px solid var(--color-border);
+      border-radius: 8px;
+      padding: 6px 8px;
+      font-size: 8.5pt;
+    }
+    .thermal-footer {
+      border-top: 2px solid var(--color-ink);
+      padding-top: 6px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 8pt;
+      font-weight: 700;
+    }
+
+    @media print {
+      body * { visibility: hidden; }
+      #printableArea, #printableArea * { visibility: visible; }
+      #printableArea {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 100%;
+        border: none !important;
+        padding: 0 !important;
+      }
+      .thermal-label {
+        box-shadow: none;
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="workspace-wrapper" style="margin-left: 0;">
+    <header class="top-bar">
+      <a href="./index.html" class="btn">← Torna alla Dashboard</a>
+      <div class="top-actions">
+        <button type="button" class="btn" id="exportBotanicaCsvBtn">Esporta CSV</button>
+        <button type="button" class="btn" id="exportBotanicaJsonBtn">Esporta JSON</button>
+        <span class="badge">Archivi & Conoscenza</span>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="section-header">
+        <div>
+          <h1>Archivio Botanico & Stampa Etichette</h1>
+          <p>Catalogo personale delle specie, parametri di coltivazione e layout ottimizzato per etichette termiche e schede tecniche.</p>
+        </div>
+        <span class="badge" id="botanicaCounterBadge">0 Schede in archivio</span>
+      </div>
+
+      <!-- Sezione Superiore: Inserimento + Anteprima Etichetta Termica -->
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin-bottom: 28px;">
+        <!-- Form Scheda Botanica -->
+        <div class="tool-card">
+          <h2>Nuova Scheda Botanica</h2>
+          <form id="botanicaForm" style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 12px;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label for="botNomeComune">Nome Comune</label>
+              <input type="text" id="botNomeComune" class="form-control" required placeholder="Es. Monstera Deliciosa">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label for="botNomeScientifico">Nome Scientifico</label>
+              <input type="text" id="botNomeScientifico" class="form-control" required placeholder="Es. Monstera deliciosa">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label for="botFamiglia">Famiglia / Categoria</label>
+              <select id="botFamiglia" class="form-control">
+                <option value="Tropicale">Tropicale</option>
+                <option value="Succulenta">Succulenta / Cactacea</option>
+                <option value="Aromatica">Aromatica / Officinale</option>
+                <option value="Orto & Frutto">Orto & Frutto</option>
+                <option value="Arbusto / Esterno">Arbusto / Esterno</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label for="botCodice">Codice Vaso / Lotto</label>
+              <input type="text" id="botCodice" class="form-control" placeholder="Es. BOT-043">
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label for="botLuce">Esposizione Luce</label>
+              <select id="botLuce" class="form-control">
+                <option value="Luce indiretta">Luce indiretta luminosa</option>
+                <option value="Pieno sole">Pieno sole</option>
+                <option value="Mezz'ombra">Mezz'ombra</option>
+                <option value="Ombra luminosa">Ombra luminosa</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label for="botAcqua">Irrigazione</label>
+              <select id="botAcqua" class="form-control">
+                <option value="Moderata (terriccio asciutto)">Moderata (a terriccio asciutto)</option>
+                <option value="Frequente (umido)">Frequente (mantenere umido)</option>
+                <option value="Scarsa (ogni 15-20 gg)">Scarsa (ogni 15-20 gg)</option>
+              </select>
+            </div>
+            <div class="form-group" style="grid-column: 1 / -1; margin-bottom: 0;">
+              <label for="botSubstrato">Substrato & Note Colturali</label>
+              <textarea id="botSubstrato" class="form-control" rows="2" placeholder="Es. Torba, perlite 30%, corteccia di pino. Concimare da marzo a settembre."></textarea>
+            </div>
+            <div style="grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 12px; margin-top: 4px;">
+              <button type="submit" class="btn btn-primary"><span>Salva Scheda nel Browser</span></button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Anteprima Etichetta Termica / Stampa -->
+        <div class="tool-card">
+          <div>
+            <div class="card-top">
+              <h2>Anteprima Etichetta Termica</h2>
+              <span class="badge">100 × 60 mm</span>
+            </div>
+            <p class="card-desc">Seleziona una scheda dall'archivio o compila il modulo a fianco per aggiornare l'etichetta pronta alla stampa.</p>
+            <div class="label-preview-wrapper" id="printableArea">
+              <div class="thermal-label">
+                <div>
+                  <div class="thermal-label-header">
+                    <div>
+                      <div id="lblNomeComune" style="font-weight: 700; font-size: 12pt; color: var(--color-primary);">Monstera Deliciosa</div>
+                      <div id="lblNomeScientifico" class="thermal-scientific">Monstera deliciosa Liebm.</div>
+                    </div>
+                    <span class="badge" id="lblCodice">BOT-001</span>
+                  </div>
+                  <div class="thermal-grid">
+                    <div class="thermal-cell">
+                      <strong>Luce:</strong> <span id="lblLuce">Luce indiretta</span>
+                    </div>
+                    <div class="thermal-cell">
+                      <strong>Acqua:</strong> <span id="lblAcqua">Moderata</span>
+                    </div>
+                  </div>
+                  <div class="thermal-cell" style="margin-bottom: 8px;">
+                    <strong>Substrato / Note:</strong> <span id="lblSubstrato">Terriccio drenante con perlite e bark.</span>
+                  </div>
+                </div>
+                <div class="thermal-footer">
+                  <span id="lblFamiglia">TROPICALE</span>
+                  <span id="lblData">ARCHIVIO BOTANICO</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card-footer" style="margin-top: 16px;">
+            <span class="meta-tag">Stampa diretta browser / termica</span>
+            <button type="button" class="btn btn-primary" onclick="window.print()"><span>Stampa Etichetta</span></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Barra Ricerca e Filtri Famiglia -->
+      <div class="search-box" style="max-width: 100%; margin-bottom: 16px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2.4">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="botanicaSearchInput" placeholder="Cerca pianta per nome comune, scientifico, codice o substrato...">
+      </div>
+
+      <div class="filter-bar" id="botanicaFilterBar">
+        <button type="button" class="chip active" data-bot-filter="all">Tutte le specie</button>
+        <button type="button" class="chip" data-bot-filter="Tropicale">Tropicale</button>
+        <button type="button" class="chip" data-bot-filter="Succulenta">Succulenta</button>
+        <button type="button" class="chip" data-bot-filter="Aromatica">Aromatica</button>
+        <button type="button" class="chip" data-bot-filter="Orto & Frutto">Orto & Frutto</button>
+        <button type="button" class="chip" data-bot-filter="Arbusto / Esterno">Arbusto / Esterno</button>
+      </div>
+
+      <!-- Griglia Schede Botaniche -->
+      <div class="tools-grid" id="botanicaGrid"></div>
+    </main>
+  </div>
+
+  <div class="toast-box" id="toastBox">
+    <span class="toast-dot"></span>
+    <span id="toastMessage">Operazione completata</span>
+  </div>
+
+  <script>
+    const STORAGE_KEY_BOTANICA = 'ws_module_botanica';
+    const defaultBotanicaSchede = [
+      {
+        id: 401,
+        codice: "BOT-001",
+        nomeComune: "Monstera Deliciosa",
+        nomeScientifico: "Monstera deliciosa Liebm.",
+        famiglia: "Tropicale",
+        luce: "Luce indiretta",
+        acqua: "Moderata (terriccio asciutto)",
+        substrato: "40% terriccio universale, 30% corteccia di pino (bark), 30% perlite.",
+        dataIns: "2026-03-14"
+      },
+      {
+        id: 402,
+        codice: "BOT-002",
+        nomeComune: "Rosmarino Prostrato",
+        nomeScientifico: "Salvia rosmarinus",
+        famiglia: "Aromatica",
+        luce: "Pieno sole",
+        acqua: "Scarsa (ogni 15-20 gg)",
+        substrato: "Substrato sabbioso molto drenante con pomice e terra da giardino.",
+        dataIns: "2026-04-02"
+      },
+      {
+        id: 403,
+        codice: "BOT-003",
+        nomeComune: "Echeveria Elegans",
+        nomeScientifico: "Echeveria elegans Rose",
+        famiglia: "Succulenta",
+        luce: "Pieno sole",
+        acqua: "Scarsa (ogni 15-20 gg)",
+        substrato: "60% inerti (pomice e lapillo vulcanico), 40% terriccio per cactacee.",
+        dataIns: "2026-05-19"
+      }
+    ];
+
+    let botanicaList = [];
+    let currentBotFilter = 'all';
+
+    function showToast(msg) {
+      const toast = document.getElementById('toastBox');
+      document.getElementById('toastMessage').textContent = msg;
+      toast.style.display = 'flex';
+      setTimeout(() => { toast.style.display = 'none'; }, 3000);
+    }
+
+    function updateThermalPreview(item) {
+      document.getElementById('lblNomeComune').textContent = item.nomeComune || 'Nome Specie';
+      document.getElementById('lblNomeScientifico').textContent = item.nomeScientifico || 'Genus species';
+      document.getElementById('lblCodice').textContent = item.codice || 'BOT-NEW';
+      document.getElementById('lblLuce').textContent = item.luce || '-';
+      document.getElementById('lblAcqua').textContent = item.acqua || '-';
+      document.getElementById('lblSubstrato').textContent = item.substrato || 'Nessuna nota.';
+      document.getElementById('lblFamiglia').textContent = (item.famiglia || 'ARCHIVIO').toUpperCase();
+      document.getElementById('lblData').textContent = item.dataIns || new Date().toISOString().split('T')[0];
+    }
+
+    function selectSchedaForLabel(id) {
+      const found = botanicaList.find(b => b.id === id);
+      if (!found) return;
+      updateThermalPreview(found);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      showToast(`Etichetta caricata: ${found.nomeComune}`);
+    }
+
+    function deleteBotanicaItem(id) {
+      botanicaList = botanicaList.filter(b => b.id !== id);
+      localStorage.setItem(STORAGE_KEY_BOTANICA, JSON.stringify(botanicaList));
+      renderBotanicaGrid();
+      showToast('Scheda botanica eliminata');
+    }
+
+    function renderBotanicaGrid() {
+      const q = document.getElementById('botanicaSearchInput').value.toLowerCase().trim();
+      const grid = document.getElementById('botanicaGrid');
+      grid.innerHTML = '';
+      let count = 0;
+
+      botanicaList.forEach(item => {
+        const matchesFilter = (currentBotFilter === 'all' || item.famiglia === currentBotFilter);
+        const matchesQuery = item.nomeComune.toLowerCase().includes(q) ||
+                             item.nomeScientifico.toLowerCase().includes(q) ||
+                             item.codice.toLowerCase().includes(q) ||
+                             item.substrato.toLowerCase().includes(q);
+
+        if (matchesFilter && matchesQuery) {
+          count++;
+          const card = document.createElement('article');
+          card.className = 'tool-card';
+          card.innerHTML = `
+            <div>
+              <div class="card-top">
+                <span class="meta-tag">${item.codice} • <em>${item.nomeScientifico}</em></span>
+                <span class="badge">${item.famiglia}</span>
+              </div>
+              <h2>${item.nomeComune}</h2>
+              <p class="card-desc">
+                <strong>Luce:</strong> ${item.luce}<br>
+                <strong>Irrigazione:</strong> ${item.acqua}<br>
+                <strong>Substrato:</strong> ${item.substrato}
+              </p>
+            </div>
+            <div class="card-footer">
+              <button type="button" class="btn" onclick="deleteBotanicaItem(${item.id})">Elimina</button>
+              <button type="button" class="btn btn-primary" onclick="selectSchedaForLabel(${item.id})"><span>Prepara Etichetta</span></button>
+            </div>
+          `;
+          grid.appendChild(card);
+        }
+      });
+
+      document.getElementById('botanicaCounterBadge').textContent = `${count} Sched${count === 1 ? 'a' : 'e'} in archivio`;
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY_BOTANICA);
+        botanicaList = saved ? JSON.parse(saved) : structuredClone(defaultBotanicaSchede);
+      } catch (err) {
+        botanicaList = structuredClone(defaultBotanicaSchede);
+      }
+
+      if (botanicaList.length > 0) {
+        updateThermalPreview(botanicaList[0]);
+      }
+
+      // Aggiornamento in tempo reale dell'etichetta mentre compili il form
+      ['botNomeComune', 'botNomeScientifico', 'botFamiglia', 'botCodice', 'botLuce', 'botAcqua', 'botSubstrato'].forEach(id => {
+        document.getElementById(id).addEventListener('input', () => {
+          updateThermalPreview({
+            nomeComune: document.getElementById('botNomeComune').value,
+            nomeScientifico: document.getElementById('botNomeScientifico').value,
+            famiglia: document.getElementById('botFamiglia').value,
+            codice: document.getElementById('botCodice').value || `BOT-${String(botanicaList.length + 1).padStart(3, '0')}`,
+            luce: document.getElementById('botLuce').value,
+            acqua: document.getElementById('botAcqua').value,
+            substrato: document.getElementById('botSubstrato').value
+          });
+        });
+      });
+
+      document.getElementById('botanicaSearchInput').addEventListener('input', renderBotanicaGrid);
+
+      document.querySelectorAll('[data-bot-filter]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          currentBotFilter = btn.getAttribute('data-bot-filter');
+          document.querySelectorAll('[data-bot-filter]').forEach(b => {
+            b.classList.toggle('active', b.getAttribute('data-bot-filter') === currentBotFilter);
+          });
+          renderBotanicaGrid();
+        });
+      });
+
+      document.getElementById('botanicaForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const nextNum = String(botanicaList.length + 1).padStart(3, '0');
+        const nuovaScheda = {
+          id: Date.now(),
+          codice: document.getElementById('botCodice').value.trim() || `BOT-${nextNum}`,
+          nomeComune: document.getElementById('botNomeComune').value.trim(),
+          nomeScientifico: document.getElementById('botNomeScientifico').value.trim(),
+          famiglia: document.getElementById('botFamiglia').value,
+          luce: document.getElementById('botLuce').value,
+          acqua: document.getElementById('botAcqua').value,
+          substrato: document.getElementById('botSubstrato').value.trim() || 'Terriccio drenante standard.',
+          dataIns: new Date().toISOString().split('T')[0]
+        };
+        botanicaList.unshift(nuovaScheda);
+        localStorage.setItem(STORAGE_KEY_BOTANICA, JSON.stringify(botanicaList));
+        updateThermalPreview(nuovaScheda);
+        e.target.reset();
+        renderBotanicaGrid();
+        showToast('Scheda botanica salvata nel browser');
+      });
+
+      document.getElementById('exportBotanicaJsonBtn').addEventListener('click', () => {
+        const a = document.createElement('a');
+        a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(botanicaList, null, 2));
+        a.download = "workspace-botanica.json";
+        a.click();
+        showToast('Esportazione JSON botanica completata');
+      });
+
+      document.getElementById('exportBotanicaCsvBtn').addEventListener('click', () => {
+        const headers = ['id', 'codice', 'nomeComune', 'nomeScientifico', 'famiglia', 'luce', 'acqua', 'substrato', 'dataIns'];
+        const rows = botanicaList.map(b => headers.map(h => `"${String(b[h] ?? '').replace(/"/g, '""')}"`).join(','));
+        const a = document.createElement('a');
+        a.href = "data:text/csv;charset=utf-8," + encodeURIComponent([headers.join(','), ...rows].join('\n'));
+        a.download = "workspace-botanica.csv";
+        a.click();
+        showToast('Esportazione CSV botanica completata');
+      });
+
+      renderBotanicaGrid();
+    });
+  </script>
+</body>
+</html>
