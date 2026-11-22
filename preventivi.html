@@ -10,12 +10,11 @@
   <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body>
-
+  
     <div class="workspace-wrapper" style="margin-left: 0;">
       <header class="top-bar">
-        <button type="button" class="btn" onclick="location.href='../index.html'">← Torna alla Dashboard</button>
+        <a href="../index.html" class="btn">← Torna alla Dashboard</a>
         <div class="top-actions">
-          <button type="button" class="btn btn-primary" id="exportPreventiviDocBtn"><span>Esporta Word / Google Docs</span></button>
           <button type="button" class="btn" id="exportPreventiviCsvBtn">Esporta CSV</button>
           <button type="button" class="btn" id="exportPreventiviJsonBtn">Esporta JSON</button>
           <span class="badge">Operatività &amp; Gestione</span>
@@ -26,69 +25,30 @@
         <div class="section-header">
           <div>
             <h1>Gestione Attività &amp; Preventivi</h1>
-            <p>Calcolatore fiscale (IVA, ritenuta, sconto), scadenzario consegne, anteprima documento ed esportazione Word / Google Docs.</p>
+            <p>Calcolatore rapido tariffe, scadenzario consegne e preventivo pronto all'esportazione.</p>
           </div>
-          <span class="badge" id="preventiviTotalBadge">Netto: € 0,00</span>
+          <span class="badge" id="preventiviTotalBadge">Totale: € 0,00</span>
         </div>
 
+        <!-- Riepilogo Numerico Rapido -->
         <div class="tools-grid" style="margin-bottom: 24px;">
-          <div class="tool-card" style="padding: 18px 24px;">
-            <span class="meta-tag">Imponibile Attività (Post-Sconto)</span>
+          <div class="tool-card">
+            <span class="meta-tag">Imponibile Attività</span>
             <h1 id="summaryNetto" style="margin-top: 6px;">€ 0,00</h1>
-            <p id="summaryFiscalDetail" style="margin-top: 4px;">IVA 22%: € 0,00 | Ritenuta 20%: € 0,00</p>
           </div>
-          <div class="tool-card" style="padding: 18px 24px;">
-            <span class="meta-tag">Totale Finale Documento</span>
-            <h1 id="summaryTotaleFinale" style="margin-top: 6px;">€ 0,00</h1>
-            <p id="summaryOre" style="margin-top: 4px;">Monte ore totale: 0 h</p>
+          <div class="tool-card">
+            <span class="meta-tag">Ore / Quantità Totali</span>
+            <h1 id="summaryOre" style="margin-top: 6px;">0 h</h1>
           </div>
-          <div class="tool-card" style="padding: 18px 24px;">
-            <span class="meta-tag">Avanzamento &amp; Scadenze</span>
+          <div class="tool-card">
+            <span class="meta-tag">Attività Completate / Approvate</span>
             <h1 id="summaryCompletate" style="margin-top: 6px;">0 / 0</h1>
-            <p id="summaryScadenzeProssime" style="margin-top: 4px;">Voci approvate o consegnate</p>
           </div>
         </div>
 
-        <div class="tool-card" style="margin-bottom: 24px;">
-          <div class="card-top">
-            <h2>1. Intestazione Preventivo &amp; Parametri Fiscali</h2>
-            <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-              <button type="button" class="btn" id="presetForfettarioBtn">Regime Forfettario (0% IVA)</button>
-              <button type="button" class="btn" id="presetOrdinarioBtn">Regime Ordinario (22% IVA + 20% Rit.)</button>
-            </div>
-          </div>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(185px, 1fr)); gap: 16px;">
-            <div class="form-group" style="margin-bottom: 0;">
-              <label for="prevDocNumero">Numero / Codice Documento</label>
-              <input type="text" id="prevDocNumero" class="form-control" value="PREV-2026-01" placeholder="Es. PREV-2026-01">
-            </div>
-            <div class="form-group" style="margin-bottom: 0;">
-              <label for="prevFilterCliente">Filtra Documento per Cliente</label>
-              <select id="prevFilterCliente" class="form-control">
-                <option value="all">Tutti i clienti / progetti</option>
-              </select>
-            </div>
-            <div class="form-group" style="margin-bottom: 0;">
-              <label for="prevScontoPerc">Sconto (%)</label>
-              <input type="number" id="prevScontoPerc" class="form-control" min="0" max="100" step="1" value="0">
-            </div>
-            <div class="form-group" style="margin-bottom: 0;">
-              <label for="prevIvaPerc">Aliquota IVA (%)</label>
-              <input type="number" id="prevIvaPerc" class="form-control" min="0" max="50" step="1" value="22">
-            </div>
-            <div class="form-group" style="margin-bottom: 0;">
-              <label for="prevRitenutaPerc">Ritenuta d'Acconto (%)</label>
-              <input type="number" id="prevRitenutaPerc" class="form-control" min="0" max="50" step="1" value="20">
-            </div>
-            <div class="form-group" style="margin-bottom: 0;">
-              <label for="prevNoteDoc">Note / Condizioni Pagamento</label>
-              <input type="text" id="prevNoteDoc" class="form-control" value="Validità preventivo 30 gg — Pagamento 50% acconto, 50% consegna">
-            </div>
-          </div>
-        </div>
-
-        <div class="tool-card" style="margin-bottom: 24px;">
-          <h2>2. Aggiungi Voce Attività / Preventivo</h2>
+        <!-- Form Inserimento Nuova Voce Preventivo / Attività -->
+        <div class="tool-card" style="margin-bottom: 28px;">
+          <h2>Nuova Voce Preventivo / Attività</h2>
           <form id="preventivoForm" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-top: 12px;">
             <div class="form-group" style="margin-bottom: 0;">
               <label for="prevCliente">Cliente / Progetto</label>
@@ -119,51 +79,13 @@
                 <option value="Consegnato">Consegnato</option>
               </select>
             </div>
-            <div style="grid-column: 1 / -1; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px;">
-              <label style="display: inline-flex; align-items: center; gap: 8px; font-weight: 700; color: var(--color-secondary); cursor: pointer;">
-                <input type="checkbox" id="togglePrevPreview" checked="" style="width: 18px; height: 18px; accent-color: var(--color-primary);">
-                Mostra Anteprima Documento Preventivo in Tempo Reale
-              </label>
+            <div style="grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 12px;">
               <button type="submit" class="btn btn-primary"><span>Aggiungi al Preventivo</span></button>
             </div>
           </form>
         </div>
 
-        <div class="tool-card" id="preventivoLivePreviewCard" style="margin-bottom: 28px;">
-          <div class="card-top">
-            <h2>3. Anteprima Documento Preventivo (Pronto per Word / Google Docs)</h2>
-            <span class="badge" id="prevDocPreviewBadge">PREV-2026-01</span>
-          </div>
-          <div style="border: 3px solid var(--color-primary); border-radius: 12px; padding: 24px; background: var(--bg-canvas);">
-            <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 12px; padding-bottom: 14px; margin-bottom: 16px; border-bottom: 3px solid var(--color-border);">
-              <div>
-                <h1 id="docPreviewTitle">Preventivo #PREV-2026-01</h1>
-                <p id="docPreviewClient" style="font-weight: 600;">Destinatario: Tutti i clienti / progetti</p>
-              </div>
-              <span class="meta-tag" id="docPreviewDate">Data: 19/11/2026</span>
-            </div>
-            <div style="width: 100%; overflow-x: auto; margin-bottom: 16px;">
-              <table style="width: 100%; border-collapse: collapse; text-align: left;">
-                <thead>
-                  <tr style="border-bottom: 3px solid var(--color-border);">
-                    <th style="padding: 8px;">Cliente / Progetto</th>
-                    <th style="padding: 8px;">Descrizione Attività</th>
-                    <th style="padding: 8px;">Q.tà / Ore</th>
-                    <th style="padding: 8px;">Tariffa</th>
-                    <th style="padding: 8px;">Subtotale</th>
-                    <th style="padding: 8px;">Scadenza</th>
-                  </tr>
-                </thead>
-                <tbody id="docPreviewTableBody"></tbody>
-              </table>
-            </div>
-            <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 16px; padding-top: 14px; border-top: 3px solid var(--color-border);">
-              <p id="docPreviewNotes" style="max-width: 520px; font-weight: 600; color: var(--color-secondary);"></p>
-              <div id="docPreviewTotalsBox" style="text-align: right; font-weight: 700; line-height: 1.7;"></div>
-            </div>
-          </div>
-        </div>
-
+        <!-- Filtro stato interno -->
         <div class="filter-bar" id="prevFilterBar">
           <button type="button" class="chip active" data-prev-filter="all">Tutte le voci</button>
           <button type="button" class="chip" data-prev-filter="Preventivato">Preventivato</button>
@@ -172,140 +94,27 @@
           <button type="button" class="chip" data-prev-filter="Consegnato">Consegnato</button>
         </div>
 
+        <!-- Griglia Voci Preventivo / Attività -->
         <div class="tools-grid" id="preventiviGrid"></div>
       </main>
     </div>
   
-  <div class="toast-box" id="toastBox">
-    <span class="toast-dot"></span>
-    <span id="toastMessage">Operazione completata</span>
-  </div>
+  <div class="toast-box" id="toastBox"><span class="toast-dot"></span><span id="toastMessage">Operazione completata</span></div>
   <script>
-function showToast(msg) {
+    function showToast(msg) {
       const toast = document.getElementById('toastBox');
       document.getElementById('toastMessage').textContent = msg;
       toast.style.display = 'flex';
       setTimeout(() => { toast.style.display = 'none'; }, 3000);
     }
-const STORAGE_KEY_PREVENTIVI = "ws_module_preventivi";
-const STORAGE_KEY_PREV_CONFIG = "ws_module_preventivi_config";
-const defaultPreventivi = [{"id":201,"cliente":"Cliente Alpha","attivita":"Architettura Dashboard & Tassonomia","ore":6,"tariffa":55,"scadenza":"2026-11-28","stato":"Approvato"},{"id":202,"cliente":"Progetto Beta","attivita":"Sviluppo Moduli Operativi PWA","ore":10,"tariffa":60,"scadenza":"2026-12-05","stato":"In Lavorazione"}];
-let preventiviList = [];
-let currentPrevFilter = "all";
-let currentPrevClientFilter = "all";
-function formatCurrency(val) {
+    
+        const STORAGE_KEY_PREVENTIVI = 'ws_module_preventivi';
+        const defaultPreventivi = [{"id":201,"cliente":"Cliente Alpha","attivita":"Architettura Dashboard & Tassonomia","ore":6,"tariffa":55,"scadenza":"2026-11-28","stato":"Approvato"},{"id":202,"cliente":"Progetto Beta","attivita":"Sviluppo Moduli Operativi PWA","ore":10,"tariffa":60,"scadenza":"2026-12-05","stato":"In Lavorazione"}];
+        let preventiviList = []; let currentPrevFilter = 'all';
+        function formatCurrency(val) {
       return new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(val);
     }
-function savePrevConfig() {
-      const cfg = {
-        docNumero: document.getElementById('prevDocNumero').value,
-        scontoPerc: document.getElementById('prevScontoPerc').value,
-        ivaPerc: document.getElementById('prevIvaPerc').value,
-        ritenutaPerc: document.getElementById('prevRitenutaPerc').value,
-        noteDoc: document.getElementById('prevNoteDoc').value
-      };
-      localStorage.setItem(STORAGE_KEY_PREV_CONFIG, JSON.stringify(cfg));
-    }
-function computePreventivoFinancials(items) {
-      const scontoPerc = Math.max(0, Math.min(100, parseFloat(document.getElementById('prevScontoPerc').value) || 0));
-      const ivaPerc = Math.max(0, parseFloat(document.getElementById('prevIvaPerc').value) || 0);
-      const ritenutaPerc = Math.max(0, parseFloat(document.getElementById('prevRitenutaPerc').value) || 0);
-
-      let lordoOre = 0;
-      let totalOre = 0;
-      items.forEach(i => {
-        lordoOre += i.ore * i.tariffa;
-        totalOre += i.ore;
-      });
-
-      const scontoVal = lordoOre * (scontoPerc / 100);
-      const imponibile = Math.max(0, lordoOre - scontoVal);
-      const ivaVal = imponibile * (ivaPerc / 100);
-      const ritenutaVal = imponibile * (ritenutaPerc / 100);
-      const totaleNetto = imponibile + ivaVal - ritenutaVal;
-
-      return {
-        lordoOre, scontoPerc, scontoVal, imponibile,
-        ivaPerc, ivaVal, ritenutaPerc, ritenutaVal, totaleNetto, totalOre
-      };
-    }
-function exportPreventiviToWordOrDocs() {
-      const docNum = document.getElementById('prevDocNumero').value.trim() || 'PREV-2026';
-      const noteDoc = document.getElementById('prevNoteDoc').value.trim();
-      const filteredItems = preventiviList.filter(item => {
-        const matchClient = currentPrevClientFilter === 'all' || item.cliente === currentPrevClientFilter;
-        const matchStatus = currentPrevFilter === 'all' || item.stato === currentPrevFilter;
-        return matchClient && matchStatus;
-      });
-      const fin = computePreventivoFinancials(filteredItems);
-      const clientLabel = currentPrevClientFilter === 'all' ? 'Tutti i clienti / progetti' : currentPrevClientFilter;
-
-      const rowsHtml = filteredItems.map(item => `
-        <tr>
-          <td style="border: 1pt solid #D2D4D0; padding: 6pt;">${item.cliente}</td>
-          <td style="border: 1pt solid #D2D4D0; padding: 6pt;">${item.attivita}</td>
-          <td style="border: 1pt solid #D2D4D0; padding: 6pt; text-align: right;">${item.ore}</td>
-          <td style="border: 1pt solid #D2D4D0; padding: 6pt; text-align: right;">${formatCurrency(item.tariffa)}</td>
-          <td style="border: 1pt solid #D2D4D0; padding: 6pt; text-align: right;"><strong>${formatCurrency(item.ore * item.tariffa)}</strong></td>
-          <td style="border: 1pt solid #D2D4D0; padding: 6pt;">${item.scadenza}</td>
-        </tr>
-      `).join('');
-
-      const docHtml = `
-        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-        <head>
-          <meta charset="utf-8">
-          <title>Preventivo ${docNum}</title>
-          <style>
-            @page { size: 210mm 297mm; margin: 20mm; }
-            body { font-family: 'Plus Jakarta Sans', Arial, sans-serif; font-size: 10pt; color: #000000; }
-            h1 { font-size: 16pt; color: #7C0B44; margin-bottom: 4pt; }
-            h2 { font-size: 12pt; color: #277584; margin-bottom: 12pt; }
-            table { width: 100%; border-collapse: collapse; margin-top: 12pt; margin-bottom: 16pt; }
-            th { background-color: #F3F5F0; border: 1pt solid #D2D4D0; padding: 6pt; text-align: left; color: #277584; }
-          </style>
-        </head>
-        <body>
-          <h1>Preventivo #${docNum}</h1>
-          <h2>Destinatario: ${clientLabel} — Data: ${new Date().toLocaleDateString('it-IT')}</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>Cliente / Progetto</th>
-                <th>Descrizione Attività</th>
-                <th>Ore / Q.tà</th>
-                <th>Tariffa</th>
-                <th>Subtotale</th>
-                <th>Scadenza</th>
-              </tr>
-            </thead>
-            <tbody>${rowsHtml}</tbody>
-          </table>
-          <p style="text-align: right; line-height: 1.6;">
-            Imponibile Lordo: ${formatCurrency(fin.lordoOre)}<br>
-            ${fin.scontoPerc > 0 ? `Sconto (${fin.scontoPerc}%): -${formatCurrency(fin.scontoVal)}<br>` : ''}
-            <strong>Imponibile Netto: ${formatCurrency(fin.imponibile)}</strong><br>
-            IVA (${fin.ivaPerc}%): +${formatCurrency(fin.ivaVal)}<br>
-            Ritenuta d'Acconto (${fin.ritenutaPerc}%): -${formatCurrency(fin.ritenutaVal)}<br>
-            <strong style="font-size: 12pt; color: #7C0B44;">Totale Netto a Pagare: ${formatCurrency(fin.totaleNetto)}</strong>
-          </p>
-          <p style="margin-top: 16pt; border-top: 1pt solid #D2D4D0; padding-top: 8pt; color: #277584;">${noteDoc}</p>
-        </body>
-        </html>
-      `;
-
-      const blob = new Blob(['\ufeff', docHtml], { type: 'application/msword;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `${docNum.replace(/\s+/g, '_')}.doc`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-      showToast('Preventivo .doc esportato per Word / Google Docs');
-    }
-function cyclePreventivoStatus(id) {
+        function cyclePreventivoStatus(id) {
       const states = ['Preventivato', 'In Lavorazione', 'Approvato', 'Consegnato'];
       const item = preventiviList.find(p => p.id === id);
       if (!item) return;
@@ -315,47 +124,27 @@ function cyclePreventivoStatus(id) {
       renderPreventiviGrid();
       showToast(`Stato aggiornato: ${item.stato}`);
     }
-function deletePreventivoItem(id) {
+        function deletePreventivoItem(id) {
       preventiviList = preventiviList.filter(p => p.id !== id);
       localStorage.setItem(STORAGE_KEY_PREVENTIVI, JSON.stringify(preventiviList));
       renderPreventiviGrid();
       showToast('Voce rimossa dal preventivo');
     }
-function renderPreventiviGrid() {
-      const clientSelect = document.getElementById('prevFilterCliente');
-      const uniqueClients = [...new Set(preventiviList.map(i => i.cliente))];
-      clientSelect.innerHTML = '<option value="all">Tutti i clienti / progetti</option>';
-      uniqueClients.forEach(cl => {
-        const opt = document.createElement('option');
-        opt.value = cl;
-        opt.textContent = cl;
-        clientSelect.appendChild(opt);
-      });
-      if (uniqueClients.includes(currentPrevClientFilter)) {
-        clientSelect.value = currentPrevClientFilter;
-      } else {
-        currentPrevClientFilter = 'all';
-        clientSelect.value = 'all';
-      }
-
+        function renderPreventiviGrid() {
       const grid = document.getElementById('preventiviGrid');
-      const tableBody = document.getElementById('docPreviewTableBody');
       grid.innerHTML = '';
-      tableBody.innerHTML = '';
 
+      let totalNetto = 0;
+      let totalOre = 0;
       let doneCount = 0;
-      const visibleItems = [];
 
       preventiviList.forEach(item => {
+        const sub = item.ore * item.tariffa;
+        totalNetto += sub;
+        totalOre += item.ore;
         if (item.stato === 'Approvato' || item.stato === 'Consegnato') doneCount++;
 
-        const matchStatus = currentPrevFilter === 'all' || item.stato === currentPrevFilter;
-        const matchClient = currentPrevClientFilter === 'all' || item.cliente === currentPrevClientFilter;
-
-        if (matchStatus && matchClient) {
-          visibleItems.push(item);
-          const sub = item.ore * item.tariffa;
-
+        if (currentPrevFilter === 'all' || item.stato === currentPrevFilter) {
           const card = document.createElement('article');
           card.className = 'tool-card';
           card.innerHTML = `
@@ -376,161 +165,40 @@ function renderPreventiviGrid() {
             </div>
           `;
           grid.appendChild(card);
-
-          const tr = document.createElement('tr');
-          tr.style.borderBottom = '2px solid var(--color-border)';
-          tr.innerHTML = `
-            <td style="padding: 8px;">${item.cliente}</td>
-            <td style="padding: 8px;">${item.attivita}</td>
-            <td style="padding: 8px;">${item.ore} h</td>
-            <td style="padding: 8px;">${formatCurrency(item.tariffa)}</td>
-            <td style="padding: 8px; font-weight: 700;">${formatCurrency(sub)}</td>
-            <td style="padding: 8px;">${item.scadenza}</td>
-          `;
-          tableBody.appendChild(tr);
         }
       });
 
-      const fin = computePreventivoFinancials(visibleItems);
-      const docNum = document.getElementById('prevDocNumero').value.trim() || 'PREV-2026-01';
-      const noteDoc = document.getElementById('prevNoteDoc').value.trim();
-
-      document.getElementById('summaryNetto').textContent = formatCurrency(fin.imponibile);
-      document.getElementById('summaryFiscalDetail').textContent =
-        `IVA ${fin.ivaPerc}%: +${formatCurrency(fin.ivaVal)} | Ritenuta ${fin.ritenutaPerc}%: -${formatCurrency(fin.ritenutaVal)}`;
-      document.getElementById('summaryTotaleFinale').textContent = formatCurrency(fin.totaleNetto);
-      document.getElementById('summaryOre').textContent = `Monte ore filtrato: ${fin.totalOre} h`;
+      document.getElementById('summaryNetto').textContent = formatCurrency(totalNetto);
+      document.getElementById('summaryOre').textContent = `${totalOre} h`;
       document.getElementById('summaryCompletate').textContent = `${doneCount} / ${preventiviList.length}`;
-      document.getElementById('preventiviTotalBadge').textContent = `Netto: ${formatCurrency(fin.totaleNetto)}`;
-
-      document.getElementById('prevDocPreviewBadge').textContent = docNum;
-      document.getElementById('docPreviewTitle').textContent = `Preventivo #${docNum}`;
-      document.getElementById('docPreviewClient').textContent =
-        `Destinatario: ${currentPrevClientFilter === 'all' ? 'Tutti i clienti / progetti' : currentPrevClientFilter}`;
-      document.getElementById('docPreviewDate').textContent = `Data: ${new Date().toLocaleDateString('it-IT')}`;
-      document.getElementById('docPreviewNotes').textContent = noteDoc;
-      document.getElementById('docPreviewTotalsBox').innerHTML = `
-        Imponibile: ${formatCurrency(fin.imponibile)}<br>
-        IVA (${fin.ivaPerc}%): +${formatCurrency(fin.ivaVal)} | Ritenuta (${fin.ritenutaPerc}%): -${formatCurrency(fin.ritenutaVal)}<br>
-        <span style="color: var(--color-primary); font-size: 12pt;">Totale Netto: ${formatCurrency(fin.totaleNetto)}</span>
-      `;
+      document.getElementById('preventiviTotalBadge').textContent = `Totale: ${formatCurrency(totalNetto)}`;
     }
-function initPreventiviModule() {
-      try {
-        const saved = localStorage.getItem(STORAGE_KEY_PREVENTIVI);
-        preventiviList = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(defaultPreventivi));
-        const savedCfg = localStorage.getItem(STORAGE_KEY_PREV_CONFIG);
-        if (savedCfg) {
-          const c = JSON.parse(savedCfg);
-          if (c.docNumero) document.getElementById('prevDocNumero').value = c.docNumero;
-          if (c.scontoPerc !== undefined) document.getElementById('prevScontoPerc').value = c.scontoPerc;
-          if (c.ivaPerc !== undefined) document.getElementById('prevIvaPerc').value = c.ivaPerc;
-          if (c.ritenutaPerc !== undefined) document.getElementById('prevRitenutaPerc').value = c.ritenutaPerc;
-          if (c.noteDoc) document.getElementById('prevNoteDoc').value = c.noteDoc;
-        }
-      } catch (err) {
-        preventiviList = JSON.parse(JSON.stringify(defaultPreventivi));
-      }
-
-      const dateInput = document.getElementById('prevScadenza');
-      if (dateInput && !dateInput.value) {
-        dateInput.value = new Date().toISOString().split('T')[0];
-      }
-
-      
-      document.getElementById('exportPreventiviDocBtn').addEventListener('click', exportPreventiviToWordOrDocs);
-
-      ['prevDocNumero', 'prevScontoPerc', 'prevIvaPerc', 'prevRitenutaPerc', 'prevNoteDoc'].forEach(id => {
-        document.getElementById(id).addEventListener('input', () => {
-          savePrevConfig();
-          renderPreventiviGrid();
-        });
-      });
-
-      document.getElementById('prevFilterCliente').addEventListener('change', (e) => {
-        currentPrevClientFilter = e.target.value;
-        renderPreventiviGrid();
-      });
-
-      document.getElementById('togglePrevPreview').addEventListener('change', (e) => {
-        document.getElementById('preventivoLivePreviewCard').style.display = e.target.checked ? 'block' : 'none';
-      });
-
-      document.getElementById('presetForfettarioBtn').addEventListener('click', () => {
-        document.getElementById('prevIvaPerc').value = 0;
-        document.getElementById('prevRitenutaPerc').value = 0;
-        savePrevConfig();
-        renderPreventiviGrid();
-        showToast('Impostato Regime Forfettario (IVA 0%, Ritenuta 0%)');
-      });
-
-      document.getElementById('presetOrdinarioBtn').addEventListener('click', () => {
-        document.getElementById('prevIvaPerc').value = 22;
-        document.getElementById('prevRitenutaPerc').value = 20;
-        savePrevConfig();
-        renderPreventiviGrid();
-        showToast('Impostato Regime Ordinario (IVA 22%, Ritenuta 20%)');
-      });
-
-      document.querySelectorAll('[data-prev-filter]').forEach(btn => {
-        btn.addEventListener('click', () => {
-          currentPrevFilter = btn.getAttribute('data-prev-filter');
-          document.querySelectorAll('[data-prev-filter]').forEach(b => {
-            b.classList.toggle('active', b.getAttribute('data-prev-filter') === currentPrevFilter);
+        window.addEventListener('DOMContentLoaded', () => {
+          const saved = localStorage.getItem(STORAGE_KEY_PREVENTIVI);
+          preventiviList = saved ? JSON.parse(saved) : structuredClone(defaultPreventivi);
+          document.getElementById('prevScadenza').value = new Date().toISOString().split('T')[0];
+          document.querySelectorAll('[data-prev-filter]').forEach(btn => btn.addEventListener('click', () => {
+            currentPrevFilter = btn.getAttribute('data-prev-filter');
+            document.querySelectorAll('[data-prev-filter]').forEach(b => b.classList.toggle('active', b.getAttribute('data-prev-filter') === currentPrevFilter));
+            renderPreventiviGrid();
+          }));
+          document.getElementById('preventivoForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            preventiviList.unshift({ id: Date.now(), cliente: document.getElementById('prevCliente').value.trim(), attivita: document.getElementById('prevAttivita').value.trim(), ore: parseFloat(document.getElementById('prevOre').value) || 0, tariffa: parseFloat(document.getElementById('prevTariffa').value) || 0, scadenza: document.getElementById('prevScadenza').value, stato: document.getElementById('prevStato').value });
+            localStorage.setItem(STORAGE_KEY_PREVENTIVI, JSON.stringify(preventiviList));
+            e.target.reset(); renderPreventiviGrid(); showToast('Voce salvata');
+          });
+          document.getElementById('exportPreventiviJsonBtn').addEventListener('click', () => {
+            const a = document.createElement('a'); a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(preventiviList, null, 2)); a.download = "workspace-preventivi.json"; a.click();
+          });
+          document.getElementById('exportPreventiviCsvBtn').addEventListener('click', () => {
+            const headers = ['id', 'cliente', 'attivita', 'ore', 'tariffa', 'totale', 'scadenza', 'stato'];
+            const rows = preventiviList.map(p => { const r = { ...p, totale: (p.ore * p.tariffa).toFixed(2) }; return headers.map(h => '"' + String(r[h]).replace(/"/g, '""') + '"').join(','); });
+            const a = document.createElement('a'); a.href = "data:text/csv;charset=utf-8," + encodeURIComponent([headers.join(','), ...rows].join('\n')); a.download = "workspace-preventivi.csv"; a.click();
           });
           renderPreventiviGrid();
         });
-      });
-
-      document.getElementById('preventivoForm').addEventListener('submit', (e) => {
-        e.preventDefault();
-        const item = {
-          id: Date.now(),
-          cliente: document.getElementById('prevCliente').value.trim(),
-          attivita: document.getElementById('prevAttivita').value.trim(),
-          ore: parseFloat(document.getElementById('prevOre').value) || 0,
-          tariffa: parseFloat(document.getElementById('prevTariffa').value) || 0,
-          scadenza: document.getElementById('prevScadenza').value,
-          stato: document.getElementById('prevStato').value
-        };
-        preventiviList.unshift(item);
-        localStorage.setItem(STORAGE_KEY_PREVENTIVI, JSON.stringify(preventiviList));
-        e.target.reset();
-        document.getElementById('prevOre').value = 1;
-        document.getElementById('prevTariffa').value = 50;
-        document.getElementById('prevScadenza').value = new Date().toISOString().split('T')[0];
-        renderPreventiviGrid();
-        showToast('Voce preventivo salvata in localStorage');
-      });
-
-      document.getElementById('exportPreventiviJsonBtn').addEventListener('click', () => {
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(preventiviList, null, 2));
-        const a = document.createElement('a');
-        a.href = dataStr;
-        a.download = "workspace-preventivi.json";
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        showToast('Esportazione JSON completata');
-      });
-
-      document.getElementById('exportPreventiviCsvBtn').addEventListener('click', () => {
-        const headers = ['id', 'cliente', 'attivita', 'ore', 'tariffa', 'totale', 'scadenza', 'stato'];
-        const rows = preventiviList.map(p => {
-          const rowObj = { ...p, totale: (p.ore * p.tariffa).toFixed(2) };
-          return headers.map(h => `"${String(rowObj[h]).replace(/"/g, '""')}"`).join(',');
-        });
-        const csvContent = "data:text/csv;charset=utf-8," + encodeURIComponent([headers.join(','), ...rows].join('\n'));
-        const a = document.createElement('a');
-        a.href = csvContent;
-        a.download = "workspace-preventivi.csv";
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        showToast('Esportazione CSV completata');
-      });
-    }
-window.addEventListener("DOMContentLoaded", function() { initPreventiviModule(); renderPreventiviGrid(); });
+      
   </script>
 </body>
 </html>

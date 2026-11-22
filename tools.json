@@ -67,9 +67,9 @@
       "title": "Archivio Botanico & Stampa",
       "category": "archivi",
       "badge": "Botanica",
-      "desc": "Catalogo specie (terreno, sole, acqua, regione) con anteprima etichette termiche e schede A5.",
-      "status": "Operativo",
-      "url": "./modules/botanica.html"
+      "desc": "Catalogo personale con generatore di layout ottimizzati per etichette termiche e schede tecniche.",
+      "status": "42 Schede",
+      "url": "./modules/template-modulo.html"
     },
     {
       "id": 5,

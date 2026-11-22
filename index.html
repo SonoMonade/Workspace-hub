@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Workspace Hub — Dashboard Personale</title>
-  <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#7C0B44">
+  <title>Workspace Hub</title>
+  <link rel="manifest" href="./manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -16,6 +16,7 @@
     <div class="brand-mark">W</div>
     <nav class="nav-items" id="railNavItems"></nav>
   </aside>
+
   <div class="workspace-wrapper">
     <header class="top-bar">
       <div class="search-box">
@@ -33,6 +34,7 @@
         <button class="btn btn-primary" id="openDrawerBtn"><span>+ Nuovo Strumento</span></button>
       </div>
     </header>
+
     <main class="main-content">
       <div class="section-header">
         <div>
@@ -41,19 +43,23 @@
         </div>
         <span class="badge" id="counterBadge">0 Strumenti attivi</span>
       </div>
+
       <div class="filter-bar" id="filterBar"></div>
+
       <div class="tool-card" id="sectionPurposeCard" style="margin-bottom: 24px; padding: 18px 24px;">
         <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px;">
           <div>
             <h2 id="sectionPurposeTitle" style="margin-bottom: 4px;">Panoramica Completa del Workspace</h2>
-            <p id="sectionPurposeDesc">Tutti gli strumenti operativi, di automazione AI, archiviazione e didattica riuniti in un unico ambiente.</p>
+            <p id="sectionPurposeDesc">A cosa serve: Riunisce in un unico hub tutti gli strumenti operativi, di automazione AI, archiviazione e didattica.</p>
           </div>
-          <span class="badge" id="sectionPurposeActions">Cosa puoi farci: Cerca, filtra per funzione, apri i moduli o aggiungi nuovi strumenti</span>
+          <span class="badge" id="sectionPurposeActions">Cosa puoi farci: Filtra per funzione, cerca strumenti o creane di nuovi</span>
         </div>
       </div>
+
       <section class="tools-grid" id="toolsGrid"></section>
     </main>
   </div>
+
   <div class="drawer-overlay" id="drawerOverlay">
     <div class="side-sheet">
       <div>
@@ -90,18 +96,22 @@
         </form>
       </div>
       <div style="margin-top: 24px; padding-top: 16px; border-top: 3px solid #D2D4D0;">
-        <button type="button" class="btn" id="resetDefaultBtn" style="width: 100%;">Ripristina Dati Predefiniti</button>
+        <button type="button" class="btn" id="resetDefaultBtn" style="width: 100%;">Sincronizza con data/tools.json</button>
       </div>
     </div>
   </div>
+
   <div class="toast-box" id="toastBox">
     <span class="toast-dot"></span>
     <span id="toastMessage">Operazione completata</span>
   </div>
+
   <script src="./assets/js/app.js"></script>
   <script>
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", function() { navigator.serviceWorker.register("./sw.js").catch(function() {}); });
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
     }
   </script>
 </body>
