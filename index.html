@@ -4,14 +4,97 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#7C0B44">
-  <title>Workspace Hub</title>
+  <title>Workspace Hub — Accesso Personale</title>
   <link rel="manifest" href="./manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./style.css">
+  <style>
+    /* Schermata di Accesso Singolo Account */
+    .auth-gate {
+      position: fixed;
+      inset: 0;
+      background-color: var(--bg-canvas);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .auth-gate.hidden {
+      display: none;
+    }
+    .auth-card {
+      width: 100%;
+      max-width: 420px;
+      background-color: var(--bg-canvas);
+      border: 3px solid var(--color-primary);
+      border-radius: 20px;
+      padding: 32px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .auth-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding-bottom: 16px;
+      border-bottom: 3px solid var(--color-border);
+    }
+    .auth-error {
+      color: var(--color-primary);
+      font-weight: 700;
+      font-size: 9pt;
+      display: none;
+    }
+  </style>
 </head>
 <body>
+  <!-- PORTA DI ACCESSO SINGOLO ACCOUNT -->
+  <div class="auth-gate" id="authGate">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="brand-mark" style="margin-bottom: 0; flex-shrink: 0;">W</div>
+        <div>
+          <h1 id="authTitle">Workspace Personale</h1>
+          <p id="authSubtitle" style="font-size: 9pt;">Accesso riservato al singolo account</p>
+        </div>
+      </div>
+
+      <!-- Form Primo Avvio (Creazione Password/PIN) -->
+      <form id="authSetupForm" style="display: none; flex-direction: column; gap: 14px;">
+        <p>Imposta una <strong>Password o un PIN personale</strong> per proteggere l'accesso al tuo Workspace.</p>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="setupOwnerName">Nome Profilo (opzionale)</label>
+          <input type="text" id="setupOwnerName" class="form-control" value="SonoMonade" placeholder="Il tuo nome">
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="setupPasscode">Nuova Password / PIN</label>
+          <input type="password" id="setupPasscode" class="form-control" required minlength="4" placeholder="Minimo 4 caratteri">
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="setupPasscodeConfirm">Conferma Password / PIN</label>
+          <input type="password" id="setupPasscodeConfirm" class="form-control" required minlength="4" placeholder="Ripeti password o PIN">
+        </div>
+        <span class="auth-error" id="setupErrorMsg">Le password non coincidono.</span>
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 4px;"><span>Attiva Protezione & Entra →</span></button>
+      </form>
+
+      <!-- Form Sblocco Account Esistente -->
+      <form id="authLoginForm" style="display: none; flex-direction: column; gap: 14px;">
+        <p>Bentornato <strong id="loginOwnerBadge">SonoMonade</strong>. Inserisci la tua chiave di accesso per sbloccare gli strumenti.</p>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="loginPasscode">Password / PIN Personale</label>
+          <input type="password" id="loginPasscode" class="form-control" required placeholder="Inserisci password o PIN" autofocus>
+        </div>
+        <span class="auth-error" id="loginErrorMsg">Password o PIN non corretto. Riprova.</span>
+        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 4px;"><span>Sblocca Workspace →</span></button>
+      </form>
+    </div>
+  </div>
+
   <aside class="nav-rail">
     <div class="brand-mark">W</div>
     <nav class="nav-items" id="railNavItems"></nav>
@@ -27,12 +110,13 @@
         <input type="text" id="searchInput" placeholder="Cerca strumento, funzione o tag...">
       </div>
       <div class="top-actions">
-        <span class="meta-tag" id="schemaVersionTag">v2.3.1</span>
+        <span class="meta-tag" id="schemaVersionTag">v2.4.0</span>
         <button class="btn btn-cloud" id="openCloudDrawerBtn">☁️ Cloud GitHub</button>
+        <button class="btn" id="lockWorkspaceBtn" title="Blocca schermata">🔒 Blocca</button>
         <input type="file" id="importJsonInput" accept=".json" style="display: none;">
-        <button class="btn" id="importJsonBtn">Importa JSON</button>
-        <button class="btn" id="exportJsonBtn">Esporta Backup</button>
-        <button class="btn btn-primary" id="openDrawerBtn"><span>+ Nuovo Strumento</span></button>
+        <button class="btn" id="importJsonBtn">Importa</button>
+        <button class="btn" id="exportJsonBtn">Backup</button>
+        <button class="btn btn-primary" id="openDrawerBtn"><span>+ Nuovo</span></button>
       </div>
     </header>
 
@@ -40,7 +124,7 @@
       <div class="section-header">
         <div>
           <h1>Workspace Hub</h1>
-          <p>Strumenti personali organizzati per funzione d'uso</p>
+          <p id="welcomeUserSubtitle">Strumenti personali organizzati per funzione d'uso</p>
         </div>
         <span class="badge" id="counterBadge">0 Strumenti attivi</span>
       </div>
@@ -53,7 +137,7 @@
             <h2 id="sectionPurposeTitle" style="margin-bottom: 4px;">Panoramica Completa del Workspace</h2>
             <p id="sectionPurposeDesc">A cosa serve: Riunisce in un unico hub tutti gli strumenti operativi, di automazione AI, archiviazione e didattica.</p>
           </div>
-          <span class="badge" id="sectionPurposeActions">Cosa puoi farci: Filtra per funzione, cerca strumenti o salva sul Cloud</span>
+          <span class="badge" id="sectionPurposeActions">Cosa puoi farci: Filtra, cerca o salva sul Cloud</span>
         </div>
       </div>
 
@@ -135,8 +219,9 @@
         </div>
       </div>
 
-      <div style="margin-top: 24px; padding-top: 16px; border-top: 3px solid var(--color-border);">
+      <div style="margin-top: 24px; padding-top: 16px; border-top: 3px solid var(--color-border); display: flex; flex-direction: column; gap: 10px;">
         <span class="meta-tag" id="cloudLastSyncLabel">Stato: Pronto</span>
+        <button type="button" class="btn" id="changePasscodeBtn" style="width: 100%;">Cambia Password / PIN Account</button>
       </div>
     </div>
   </div>
@@ -147,6 +232,104 @@
   </div>
 
   <script>
+    // --- GESTIONE ACCESSO SINGOLO ACCOUNT (SHA-256) ---
+    const AUTH_KEY = 'ws_single_account_auth';
+    const SESSION_UNLOCK_KEY = 'ws_session_unlocked';
+
+    async function hashPasscode(text) {
+      if (window.crypto && window.crypto.subtle) {
+        const msgBuffer = new TextEncoder().encode(text.trim());
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      }
+      return btoa(unescape(encodeURIComponent(text.trim())));
+    }
+
+    function initAuthGate() {
+      const gate = document.getElementById('authGate');
+      const setupForm = document.getElementById('authSetupForm');
+      const loginForm = document.getElementById('authLoginForm');
+      const authDataRaw = localStorage.getItem(AUTH_KEY);
+
+      if (sessionStorage.getItem(SESSION_UNLOCK_KEY) === 'true' && authDataRaw) {
+        gate.classList.add('hidden');
+        const authData = JSON.parse(authDataRaw);
+        if (authData.owner) {
+          document.getElementById('welcomeUserSubtitle').textContent = `Area privata di ${authData.owner} • Strumenti organizzati per funzione d'uso`;
+        }
+        return;
+      }
+
+      gate.classList.remove('hidden');
+      if (!authDataRaw) {
+        document.getElementById('authTitle').textContent = 'Configura Account';
+        document.getElementById('authSubtitle').textContent = 'Primo accesso: imposta la tua chiave personale';
+        setupForm.style.display = 'flex';
+        loginForm.style.display = 'none';
+      } else {
+        const authData = JSON.parse(authDataRaw);
+        document.getElementById('authTitle').textContent = 'Accesso Riservato';
+        document.getElementById('authSubtitle').textContent = 'Inserisci la tua password o PIN';
+        document.getElementById('loginOwnerBadge').textContent = authData.owner || 'SonoMonade';
+        setupForm.style.display = 'none';
+        loginForm.style.display = 'flex';
+      }
+    }
+
+    document.getElementById('authSetupForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const owner = document.getElementById('setupOwnerName').value.trim() || 'SonoMonade';
+      const p1 = document.getElementById('setupPasscode').value;
+      const p2 = document.getElementById('setupPasscodeConfirm').value;
+      const errEl = document.getElementById('setupErrorMsg');
+
+      if (p1 !== p2) {
+        errEl.style.display = 'block';
+        return;
+      }
+      errEl.style.display = 'none';
+      const hash = await hashPasscode(p1);
+      localStorage.setItem(AUTH_KEY, JSON.stringify({ owner, hash }));
+      sessionStorage.setItem(SESSION_UNLOCK_KEY, 'true');
+      e.target.reset();
+      initAuthGate();
+      showToast(`Benvenuto ${owner}! Accesso protetto attivato.`);
+    });
+
+    document.getElementById('authLoginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const inputPass = document.getElementById('loginPasscode').value;
+      const errEl = document.getElementById('loginErrorMsg');
+      const authData = JSON.parse(localStorage.getItem(AUTH_KEY) || '{}');
+      const inputHash = await hashPasscode(inputPass);
+
+      if (inputHash === authData.hash) {
+        errEl.style.display = 'none';
+        sessionStorage.setItem(SESSION_UNLOCK_KEY, 'true');
+        e.target.reset();
+        initAuthGate();
+        showToast('Workspace sbloccato');
+      } else {
+        errEl.style.display = 'block';
+      }
+    });
+
+    document.getElementById('lockWorkspaceBtn').addEventListener('click', () => {
+      sessionStorage.removeItem(SESSION_UNLOCK_KEY);
+      initAuthGate();
+      showToast('Workspace bloccato');
+    });
+
+    document.getElementById('changePasscodeBtn').addEventListener('click', () => {
+      localStorage.removeItem(AUTH_KEY);
+      sessionStorage.removeItem(SESSION_UNLOCK_KEY);
+      document.getElementById('cloudDrawerOverlay').classList.remove('open');
+      initAuthGate();
+      showToast('Imposta la nuova Password / PIN');
+    });
+
+    // --- LOGICA DASHBOARD E MODULI ---
     const iconLibrary = {
       all: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#277584" stroke-width="2.2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>',
       operativita: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#277584" stroke-width="2.2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/></svg>',
@@ -156,7 +339,7 @@
     };
 
     const BUILTIN_DEFAULT_DATA = {
-      version: "2.3.1",
+      version: "2.4.0",
       sections: [
         {
           id: "operativita",
@@ -269,6 +452,8 @@
     }
 
     async function initData() {
+      initAuthGate();
+
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(regs => {
           for (let reg of regs) reg.unregister();
@@ -300,7 +485,7 @@
         }
       } catch (e) {}
 
-      document.getElementById('schemaVersionTag').textContent = 'v' + (workspaceState.version || '2.3.1');
+      document.getElementById('schemaVersionTag').textContent = 'v' + (workspaceState.version || '2.4.0');
       loadCloudConfig();
       renderNavigationAndFilters();
       renderGrid();
@@ -394,6 +579,7 @@
     function gatherAllWorkspaceData() {
       return {
         exportedAt: new Date().toISOString(),
+        accountAuth: JSON.parse(localStorage.getItem(AUTH_KEY) || 'null'),
         dashboard: JSON.parse(localStorage.getItem('ws_dashboard_state') || 'null'),
         botanica: JSON.parse(localStorage.getItem('ws_module_botanica') || 'null'),
         tipografia: JSON.parse(localStorage.getItem('ws_module_tipografia') || 'null'),
@@ -457,13 +643,14 @@
         if (!res.ok) throw new Error('Non trovato');
         const fileData = await res.json();
         const parsed = JSON.parse(base64ToUtf8(fileData.content));
+        if (parsed.accountAuth) localStorage.setItem(AUTH_KEY, JSON.stringify(parsed.accountAuth));
         if (parsed.dashboard) localStorage.setItem('ws_dashboard_state', JSON.stringify(parsed.dashboard));
         if (parsed.botanica) localStorage.setItem('ws_module_botanica', JSON.stringify(parsed.botanica));
         if (parsed.tipografia) localStorage.setItem('ws_module_tipografia', JSON.stringify(parsed.tipografia));
         if (parsed.preventivi) localStorage.setItem('ws_module_preventivi', JSON.stringify(parsed.preventivi));
         if (parsed.prompts) localStorage.setItem('ws_module_prompts', JSON.stringify(parsed.prompts));
         await initData();
-        showToast('Dati ripristinati dal Cloud GitHub!');
+        showToast('Dati e Account ripristinati dal Cloud!');
       } catch (err) {
         showToast('Nessun backup trovato o Chiave non valida');
       }
@@ -556,3 +743,6 @@
   </script>
 </body>
 </html>
+```
+
+Puoi già provare la nuova schermata di accesso nell'anteprima qui a destra e, appena ti convince, caricare questo **`index.html`** aggiornato nel tuo repository `Workspace-hub`.
