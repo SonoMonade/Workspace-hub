@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Strumento Tipografico & Impaginazione — Workspace Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Foglio di stile nella stessa cartella -->
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div class="workspace-wrapper" style="margin-left: 0;">
+    <header class="top-bar">
+      <a href="./index.html" class="btn">← Torna alla Dashboard</a>
+      <div class="top-actions">
+        <button type="button" class="btn btn-primary" id="exportTipografiaDocBtn"><span>Esporta Word / Google Docs</span></button>
+        <button type="button" class="btn" id="exportTipografiaCsvBtn">Esporta CSV</button>
+        <button type="button" class="btn" id="exportTipografiaJsonBtn">Esporta JSON</button>
+        <span class="badge">Archivi & Conoscenza</span>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="section-header">
+        <div>
+          <h1>Strumento Tipografico & Impaginazione</h1>
+          <p>Configura font, formato pagina, margini, griglia a colonne e scala in punti tipografici (pt) con esportazione strutturata.</p>
+        </div>
+        <span class="badge" id="tipografiaRatioBadge">Scala 1.250</span>
+      </div>
+
+      <div class="tool-card" style="margin-bottom: 24px;">
+        <h2>1. Font, Formato Pagina, Margini, Colonne & Punti Tipografici (pt)</h2>
+        <form id="tipografiaForm" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(185px, 1fr)); gap: 16px; margin-top: 12px;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="typoFontFamily">Font Principale (Google Font / Sistema)</label>
+            <input type="text" id="typoFontFamily" class="form-control" list="fontSuggestions" value="Plus Jakarta Sans" required placeholder="Es. Lora, Roboto, Playfair Display">
+            <datalist id="fontSuggestions">
+              <option value="Plus Jakarta Sans">
+              <option value="Lora">
+              <option value="Merriweather">
+              <option value="Playfair Display">
+              <option value="IBM Plex Mono">
+              <option value="Georgia">
+            </datalist>
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="typoPagePreset">Formato Pagina Ospitante</label>
+            <select id="typoPagePreset" class="form-control">
+              <option value="custom">Personalizzato (mm)</option>
+              <option value="210x297">A4 Verticale (210 × 297 mm)</option>
+              <option value="148x210" selected>A5 Verticale (148 × 210 mm)</option>
+              <option value="105x148">A6 Scheda / Etichetta (105 × 148 mm)</option>
+              <option value="100x60">Etichetta Termica (100 × 60 mm)</option>
+              <option value="338x190">Slide 16:9 (338 × 190 mm)</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="typoPageWidth">Larghezza Pagina (mm)</label>
+            <input type="number" id="typoPageWidth" class="form-control" min="30" max="1000" value="148" required>
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="typoPageHeight">Altezza Pagina (mm)</label>
+            <input type="number" id="typoPageHeight" class="form-control" min="30" max="1000" value="210" required>
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="typoMarginTB">Margini Sup / Inf (mm)</label>
+            <input type="number" id="typoMarginTB" class="form-control" min="0" max="100" value="18" required>
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="typoMarginLR">Margini Sx / Dx (mm)</label>
+            <input type="number" id="typoMarginLR" class="form-control" min="0" max="100" value="16" required>
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="typoColumns">Griglia a Colonne</label>
+            <select id="typoColumns" class="form-control">
+              <option value="1" selected>1 Colonna (Piena pagina)</option>
+              <option value="2">2 Colonne (Editoriale)</option>
+              <option value="3">3 Colonne (Scheda tecnica)</option>
+              <option value="4">4 Colonne (Modulistica)</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="typoBasePt">Corpo Base (pt)</label>
+            <input type="number" id="typoBasePt" class="form-control" min="6" max="36" step="0.5" value="10.5" required>
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="typoScaleRatio">Rapporto di Scala</label>
+            <select id="typoScaleRatio" class="form-control">
+              <option value="1.125">1.125 — Major Second</option>
+              <option value="1.200">1.200 — Minor Third</option>
+              <option value="1.250" selected>1.250 — Major Third</option>
+              <option value="1.333">1.333 — Perfect Fourth</option>
+              <option value="1.414">1.414 — Augmented Fourth</option>
+              <option value="1.618">1.618 — Golden Ratio</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="typoLineHeight">Interlinea Corpo</label>
+            <input type="number" id="typoLineHeight" class="form-control" step="0.05" min="1.0" max="2.4" value="1.45" required>
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="typoPresetName">Nome Preset da Salvare</label>
+            <input type="text" id="typoPresetName" class="form-control" required placeholder="Es. Scheda Tecnica A5">
+          </div>
+          <div style="grid-column: 1 / -1; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px;">
+            <button type="button" class="btn" id="copyCssTokensBtn">Copia Token CSS</button>
+            <button type="submit" class="btn btn-primary"><span>Salva Preset nel Browser</span></button>
+          </div>
+        </form>
+      </div>
+
+      <div class="tool-card" style="margin-bottom: 28px;">
+        <div class="card-top">
+          <h2>2. Anteprima in Tempo Reale (Pagina, Margini, Colonne & pt)</h2>
+          <span class="meta-tag" id="typoMetricsSummary">148 × 210 mm | H1: 20.5pt | Body: 10.5pt</span>
+        </div>
+        <div style="width: 100%; overflow-x: auto; padding: 16px 0; display: flex; justify-content: center;">
+          <div id="typoLiveCanvas" style="border: 3px solid var(--color-primary); border-radius: 12px; background: var(--bg-canvas); transition: all 0.2s ease; overflow: hidden; display: flex; flex-direction: column;">
+            <div id="typoMarginBox" style="flex: 1; border: 2px dashed var(--color-secondary); border-radius: 6px; padding: 14px; display: flex; flex-direction: column; justify-content: space-between;">
+              <div>
+                <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px; padding-bottom: 10px; margin-bottom: 14px; border-bottom: 3px solid var(--color-border);">
+                  <span class="badge" id="previewPageBadge">148 × 210 mm</span>
+                  <span class="meta-tag" id="previewGridBadge">1 Colonna | Margini 18/16 mm</span>
+                </div>
+                <div id="previewH1" style="font-weight: 700; color: var(--color-primary); margin-bottom: 8px;">Titolo Principale della Pagina (H1)</div>
+                <div id="previewH2" style="font-weight: 700; color: var(--color-secondary); margin-bottom: 12px;">Sottotitolo Operativo e Gerarchia (H2)</div>
+                <div id="previewColumnsContainer" style="display: grid; grid-template-columns: 1fr; gap: 14px; margin-bottom: 14px;">
+                  <p id="previewBody">Anteprima corpo testo in punti tipografici (pt).</p>
+                </div>
+              </div>
+              <div id="previewCaption" style="font-weight: 600; color: var(--color-secondary); padding-top: 8px; border-top: 2px solid var(--color-border);">DIDASCALIA — UNITÀ IN PT</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-header">
+        <h2>Preset Tipografici Salvati</h2>
+        <span class="badge" id="typoPresetCounter">0 Preset</span>
+      </div>
+      <div class="tools-grid" id="tipografiaGrid"></div>
+    </main>
+  </div>
+
+  <div class="toast-box" id="toastBox">
+    <span class="toast-dot"></span>
+    <span id="toastMessage">Operazione completata</span>
+  </div>
+
+  <script>
+    const STORAGE_KEY_TIPOGRAFIA = 'ws_module_tipografia';
+    const defaultTipografiaPresets = [
+      {
+        id: 301,
+        name: "Scheda Editoriale A5",
+        fontFamily: "Plus Jakarta Sans",
+        pagePreset: "148x210",
+        pageWidth: 148,
+        pageHeight: 210,
+        marginTB: 18,
+        marginLR: 16,
+        columns: 1,
+        basePt: 10.5,
+        ratio: 1.250,
+        lineHeight: 1.45
+      },
+      {
+        id: 302,
+        name: "Scheda Tecnica 2 Colonne A4",
+        fontFamily: "Lora",
+        pagePreset: "210x297",
+        pageWidth: 210,
+        pageHeight: 297,
+        marginTB: 20,
+        marginLR: 20,
+        columns: 2,
+        basePt: 10,
+        ratio: 1.250,
+        lineHeight: 1.40
+      }
+    ];
+
+    let tipografiaPresets = [];
+    const loadedGoogleFonts = new Set(['Plus Jakarta Sans']);
+
+    function showToast(msg) {
+      const toast = document.getElementById('toastBox');
+      document.getElementById('toastMessage').textContent = msg;
+      toast.style.display = 'flex';
+      setTimeout(() => { toast.style.display = 'none'; }, 3000);
+    }
+
+    function ensureGoogleFontLoaded(fontName) {
+      const cleanName = (fontName || '').trim();
+      if (!cleanName || loadedGoogleFonts.has(cleanName)) return;
+      const systemFonts = ['Georgia', 'Times New Roman', 'Arial', 'Helvetica', 'Courier New', 'monospace', 'sans-serif', 'serif'];
+      if (systemFonts.some(sf => sf.toLowerCase() === cleanName.toLowerCase())) return;
+
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(cleanName).replace(/%20/g, '+')}:wght@400;600;700&display=swap`;
+      document.head.appendChild(link);
+      loadedGoogleFonts.add(cleanName);
+    }
+
+    function computeScaleValues() {
+      const fontFamily = document.getElementById('typoFontFamily').value.trim() || 'Plus Jakarta Sans';
+      const pageWidth = Math.max(30, parseFloat(document.getElementById('typoPageWidth').value) || 148);
+      const pageHeight = Math.max(30, parseFloat(document.getElementById('typoPageHeight').value) || 210);
+      const marginTB = Math.max(0, parseFloat(document.getElementById('typoMarginTB').value) || 0);
+      const marginLR = Math.max(0, parseFloat(document.getElementById('typoMarginLR').value) || 0);
+      const columns = Math.max(1, parseInt(document.getElementById('typoColumns').value, 10) || 1);
+      const basePt = parseFloat(document.getElementById('typoBasePt').value) || 10.5;
+      const ratio = parseFloat(document.getElementById('typoScaleRatio').value) || 1.25;
+      const lineHeight = parseFloat(document.getElementById('typoLineHeight').value) || 1.45;
+
+      const captionPt = +(basePt / ratio).toFixed(1);
+      const bodyPt = +basePt.toFixed(1);
+      const h2Pt = +(basePt * Math.pow(ratio, 2)).toFixed(1);
+      const h1Pt = +(basePt * Math.pow(ratio, 3)).toFixed(1);
+
+      const usableWidth = Math.max(10, +(pageWidth - marginLR * 2).toFixed(1));
+      const usableHeight = Math.max(10, +(pageHeight - marginTB * 2).toFixed(1));
+
+      return {
+        fontFamily, pageWidth, pageHeight, marginTB, marginLR, columns,
+        basePt, ratio, lineHeight, captionPt, bodyPt, h2Pt, h1Pt,
+        usableWidth, usableHeight
+      };
+    }
+
+    function updateTipografiaLivePreview() {
+      const s = computeScaleValues();
+      ensureGoogleFontLoaded(s.fontFamily);
+
+      document.getElementById('tipografiaRatioBadge').textContent = `Scala ${s.ratio.toFixed(3)}`;
+      document.getElementById('typoMetricsSummary').textContent =
+        `Gabbia utile: ${s.usableWidth} × ${s.usableHeight} mm | H1: ${s.h1Pt}pt | H2: ${s.h2Pt}pt | Body: ${s.bodyPt}pt`;
+      document.getElementById('previewPageBadge').textContent = `${s.pageWidth} × ${s.pageHeight} mm`;
+      document.getElementById('previewGridBadge').textContent =
+        `${s.columns} ${s.columns === 1 ? 'Colonna' : 'Colonne'} | Margini ${s.marginTB}/${s.marginLR} mm | ${s.fontFamily}`;
+
+      const scaleFactor = 2.6;
+      const renderedWidth = Math.min(760, Math.max(250, Math.round(s.pageWidth * scaleFactor)));
+      const renderedHeight = Math.min(900, Math.max(180, Math.round(s.pageHeight * scaleFactor)));
+      const padTB = Math.min(80, Math.round(s.marginTB * scaleFactor));
+      const padLR = Math.min(80, Math.round(s.marginLR * scaleFactor));
+
+      const canvas = document.getElementById('typoLiveCanvas');
+      canvas.style.width = `${renderedWidth}px`;
+      canvas.style.maxWidth = '100%';
+      canvas.style.minHeight = `${renderedHeight}px`;
+      canvas.style.padding = `${padTB}px ${padLR}px`;
+      canvas.style.fontFamily = `'${s.fontFamily}', 'Plus Jakarta Sans', sans-serif`;
+
+      const colsContainer = document.getElementById('previewColumnsContainer');
+      colsContainer.style.gridTemplateColumns = `repeat(${s.columns}, minmax(0, 1fr))`;
+
+      const sampleParagraphs = [
+        `Corpo testo a ${s.bodyPt}pt (interlinea ${s.lineHeight}). La gabbia utile misura ${s.usableWidth} × ${s.usableHeight} mm con margini ${s.marginTB} mm (sup/inf) e ${s.marginLR} mm (sx/dx).`,
+        `Seconda colonna di verifica per valutare la giustezza e il ritmo verticale del carattere ${s.fontFamily} impaginato su ${s.columns} colonne.`,
+        `Terza colonna utile per schede tecniche, cataloghi o modulistica ad alta densità informativa.`,
+        `Quarta colonna per layout modulari e tabelle comparate.`
+      ];
+
+      colsContainer.innerHTML = '';
+      for (let i = 0; i < s.columns; i++) {
+        const p = document.createElement('p');
+        p.style.fontSize = `${s.bodyPt}pt`;
+        p.style.lineHeight = String(s.lineHeight);
+        p.style.fontFamily = 'inherit';
+        p.style.borderLeft = s.columns > 1 ? '2px solid var(--color-border)' : 'none';
+        p.style.paddingLeft = s.columns > 1 ? '8px' : '0';
+        p.textContent = sampleParagraphs[i] || sampleParagraphs[0];
+        colsContainer.appendChild(p);
+      }
+
+      const pH1 = document.getElementById('previewH1');
+      const pH2 = document.getElementById('previewH2');
+      const pCap = document.getElementById('previewCaption');
+
+      pH1.textContent = `Titolo Principale (${s.h1Pt}pt)`;
+      pH1.style.fontSize = `${s.h1Pt}pt`;
+      pH1.style.lineHeight = '1.2';
+      pH1.style.fontFamily = 'inherit';
+
+      pH2.textContent = `Sottotitolo Sezione (${s.h2Pt}pt)`;
+      pH2.style.fontSize = `${s.h2Pt}pt`;
+      pH2.style.lineHeight = '1.25';
+      pH2.style.fontFamily = 'inherit';
+
+      pCap.textContent = `DIDASCALIA (${s.captionPt}pt) — SCALA ${s.ratio.toFixed(3)} — ${s.columns} COLONNE`;
+      pCap.style.fontSize = `${s.captionPt}pt`;
+      pCap.style.fontFamily = 'inherit';
+    }
+
+    function exportToWordOrGoogleDocs() {
+      const s = computeScaleValues();
+      const presetTitle = document.getElementById('typoPresetName').value.trim() || `Impaginazione_${s.pageWidth}x${s.pageHeight}mm`;
+
+      let columnsCellsHtml = '';
+      const colWidthPercent = Math.floor(100 / s.columns);
+      for (let i = 0; i < s.columns; i++) {
+        columnsCellsHtml += `
+          <td style="width: ${colWidthPercent}%; vertical-align: top; padding-right: ${i < s.columns - 1 ? '14pt' : '0'}; font-family: '${s.fontFamily}', sans-serif; font-size: ${s.bodyPt}pt; line-height: ${s.lineHeight};">
+            <p style="margin: 0 0 8pt 0;">Colonna ${i + 1} — Testo impaginato a <strong>${s.bodyPt}pt</strong> con interlinea <strong>${s.lineHeight}</strong>. Inserisci qui il contenuto del documento mantenendo la gabbia tipografica impostata.</p>
+          </td>
+        `;
+      }
+
+      const docHtml = `
+        <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+        <head>
+          <meta charset="utf-8">
+          <title>${presetTitle}</title>
+          <style>
+            @page {
+              size: ${s.pageWidth}mm ${s.pageHeight}mm;
+              margin: ${s.marginTB}mm ${s.marginLR}mm ${s.marginTB}mm ${s.marginLR}mm;
+            }
+            body {
+              font-family: '${s.fontFamily}', sans-serif;
+              font-size: ${s.bodyPt}pt;
+              line-height: ${s.lineHeight};
+              color: #000000;
+            }
+            h1 {
+              font-family: '${s.fontFamily}', sans-serif;
+              font-size: ${s.h1Pt}pt;
+              color: #7C0B44;
+              margin: 0 0 8pt 0;
+            }
+            h2 {
+              font-family: '${s.fontFamily}', sans-serif;
+              font-size: ${s.h2Pt}pt;
+              color: #277584;
+              margin: 0 0 12pt 0;
+            }
+            .caption {
+              font-size: ${s.captionPt}pt;
+              color: #277584;
+              border-top: 1pt solid #D2D4D0;
+              padding-top: 6pt;
+              margin-top: 14pt;
+            }
+          </style>
+        </head>
+        <body>
+          <h1>Titolo Principale del Documento (${s.h1Pt}pt)</h1>
+          <h2>Sottotitolo e Struttura Impaginata (${s.h2Pt}pt)</h2>
+          <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
+            <tr>${columnsCellsHtml}</tr>
+          </table>
+          <p class="caption">Formato: ${s.pageWidth} × ${s.pageHeight} mm | Margini: ${s.marginTB}/${s.marginLR} mm | Colonne: ${s.columns} | Font: ${s.fontFamily} (${s.bodyPt}pt)</p>
+        </body>
+        </html>
+      `;
+
+      const blob = new Blob(['\ufeff', docHtml], { type: 'application/msword;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${presetTitle.replace(/\s+/g, '_')}.doc`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      showToast('File .doc esportato (apribile in Word e Google Docs)');
+    }
+
+    function loadTipografiaPreset(id) {
+      const p = tipografiaPresets.find(item => item.id === id);
+      if (!p) return;
+      document.getElementById('typoFontFamily').value = p.fontFamily || 'Plus Jakarta Sans';
+      document.getElementById('typoPagePreset').value = p.pagePreset || 'custom';
+      document.getElementById('typoPageWidth').value = p.pageWidth || 148;
+      document.getElementById('typoPageHeight').value = p.pageHeight || 210;
+      document.getElementById('typoMarginTB').value = p.marginTB ?? 18;
+      document.getElementById('typoMarginLR').value = p.marginLR ?? 16;
+      document.getElementById('typoColumns').value = String(p.columns || 1);
+      document.getElementById('typoBasePt').value = p.basePt || p.baseSize || 10.5;
+      document.getElementById('typoScaleRatio').value = p.ratio.toFixed(3);
+      document.getElementById('typoLineHeight').value = p.lineHeight;
+      updateTipografiaLivePreview();
+      showToast(`Caricato preset: ${p.name}`);
+    }
+
+    function deleteTipografiaPreset(id) {
+      tipografiaPresets = tipografiaPresets.filter(item => item.id !== id);
+      localStorage.setItem(STORAGE_KEY_TIPOGRAFIA, JSON.stringify(tipografiaPresets));
+      renderTipografiaPresets();
+      showToast('Preset tipografico eliminato');
+    }
+
+    function renderTipografiaPresets() {
+      const grid = document.getElementById('tipografiaGrid');
+      grid.innerHTML = '';
+      tipografiaPresets.forEach(p => {
+        const baseVal = p.basePt || p.baseSize || 10.5;
+        const h1 = (baseVal * Math.pow(p.ratio, 3)).toFixed(1);
+        const card = document.createElement('article');
+        card.className = 'tool-card';
+        card.innerHTML = `
+          <div>
+            <div class="card-top">
+              <span class="meta-tag">${p.fontFamily || 'Plus Jakarta Sans'}</span>
+              <span class="badge">${p.pageWidth || 148} × ${p.pageHeight || 210} mm | ${p.columns || 1} col</span>
+            </div>
+            <h2>${p.name}</h2>
+            <p class="card-desc">
+              Base: <strong>${baseVal}pt</strong> | H1: <strong>${h1}pt</strong><br>
+              Margini: <strong>${p.marginTB ?? 18}/${p.marginLR ?? 16} mm</strong> | Scala: <strong>${p.ratio}</strong>
+            </p>
+          </div>
+          <div class="card-footer">
+            <button type="button" class="btn" onclick="deleteTipografiaPreset(${p.id})">Elimina</button>
+            <button type="button" class="btn btn-primary" onclick="loadTipografiaPreset(${p.id})"><span>Carica Preset</span></button>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+      document.getElementById('typoPresetCounter').textContent = `${tipografiaPresets.length} Preset`;
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY_TIPOGRAFIA);
+        tipografiaPresets = saved ? JSON.parse(saved) : structuredClone(defaultTipografiaPresets);
+      } catch (err) {
+        tipografiaPresets = structuredClone(defaultTipografiaPresets);
+      }
+
+      document.getElementById('exportTipografiaDocBtn').addEventListener('click', exportToWordOrGoogleDocs);
+
+      document.getElementById('typoPagePreset').addEventListener('change', (e) => {
+        const val = e.target.value;
+        if (val !== 'custom' && val.includes('x')) {
+          const [w, h] = val.split('x');
+          document.getElementById('typoPageWidth').value = w;
+          document.getElementById('typoPageHeight').value = h;
+          updateTipografiaLivePreview();
+        }
+      });
+
+      ['typoPageWidth', 'typoPageHeight'].forEach(id => {
+        document.getElementById(id).addEventListener('input', () => {
+          document.getElementById('typoPagePreset').value = 'custom';
+          updateTipografiaLivePreview();
+        });
+      });
+
+      ['typoFontFamily', 'typoMarginTB', 'typoMarginLR', 'typoColumns', 'typoBasePt', 'typoScaleRatio', 'typoLineHeight'].forEach(id => {
+        document.getElementById(id).addEventListener('input', updateTipografiaLivePreview);
+      });
+
+      document.getElementById('copyCssTokensBtn').addEventListener('click', () => {
+        const s = computeScaleValues();
+        const cssSnippet = `@page {\n  size: ${s.pageWidth}mm ${s.pageHeight}mm;\n  margin: ${s.marginTB}mm ${s.marginLR}mm;\n}\n:root {\n  --font-family-main: '${s.fontFamily}', sans-serif;\n  --grid-columns: ${s.columns};\n  --font-size-h1: ${s.h1Pt}pt;\n  --font-size-h2: ${s.h2Pt}pt;\n  --font-size-body: ${s.bodyPt}pt;\n  --font-size-caption: ${s.captionPt}pt;\n  --line-height-body: ${s.lineHeight};\n}`;
+        const ta = document.createElement('textarea');
+        ta.value = cssSnippet;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        ta.remove();
+        showToast('Token CSS in pt e @page copiati');
+      });
+
+      document.getElementById('tipografiaForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const s = computeScaleValues();
+        tipografiaPresets.unshift({
+          id: Date.now(),
+          name: document.getElementById('typoPresetName').value.trim(),
+          fontFamily: s.fontFamily,
+          pagePreset: document.getElementById('typoPagePreset').value,
+          pageWidth: s.pageWidth,
+          pageHeight: s.pageHeight,
+          marginTB: s.marginTB,
+          marginLR: s.marginLR,
+          columns: s.columns,
+          basePt: s.basePt,
+          ratio: s.ratio,
+          lineHeight: s.lineHeight
+        });
+        localStorage.setItem(STORAGE_KEY_TIPOGRAFIA, JSON.stringify(tipografiaPresets));
+        document.getElementById('typoPresetName').value = '';
+        renderTipografiaPresets();
+        showToast('Preset tipografico salvato nel browser');
+      });
+
+      document.getElementById('exportTipografiaJsonBtn').addEventListener('click', () => {
+        const a = document.createElement('a');
+        a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(tipografiaPresets, null, 2));
+        a.download = "workspace-tipografia.json";
+        a.click();
+        showToast('Esportazione JSON completata');
+      });
+
+      document.getElementById('exportTipografiaCsvBtn').addEventListener('click', () => {
+        const headers = ['id', 'name', 'fontFamily', 'pageWidth', 'pageHeight', 'marginTB', 'marginLR', 'columns', 'basePt', 'ratio', 'lineHeight'];
+        const rows = tipografiaPresets.map(p => headers.map(h => `"${String(p[h] ?? '').replace(/"/g, '""')}"`).join(','));
+        const a = document.createElement('a');
+        a.href = "data:text/csv;charset=utf-8," + encodeURIComponent([headers.join(','), ...rows].join('\n'));
+        a.download = "workspace-tipografia.csv";
+        a.click();
+        showToast('Esportazione CSV completata');
+      });
+
+      updateTipografiaLivePreview();
+      renderTipografiaPresets();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#7C0B44">
+  <title>Workspace Hub</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Foglio di stile nella stessa cartella -->
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <aside class="nav-rail">
+    <div class="brand-mark">W</div>
+    <nav class="nav-items" id="railNavItems"></nav>
+  </aside>
+
+  <div class="workspace-wrapper">
+    <header class="top-bar">
+      <div class="search-box">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2.4">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="searchInput" placeholder="Cerca strumento, funzione o tag...">
+      </div>
+      <div class="top-actions">
+        <span class="meta-tag" id="schemaVersionTag">v2.1.0</span>
+        <input type="file" id="importJsonInput" accept=".json" style="display: none;">
+        <button class="btn" id="importJsonBtn">Importa JSON</button>
+        <button class="btn" id="exportJsonBtn">Esporta tools.json</button>
+        <button class="btn btn-primary" id="openDrawerBtn"><span>+ Nuovo Strumento</span></button>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="section-header">
+        <div>
+          <h1>Workspace Hub</h1>
+          <p>Strumenti personali organizzati per funzione d'uso</p>
+        </div>
+        <span class="badge" id="counterBadge">0 Strumenti attivi</span>
+      </div>
+
+      <div class="filter-bar" id="filterBar"></div>
+
+      <div class="tool-card" id="sectionPurposeCard" style="margin-bottom: 24px; padding: 18px 24px;">
+        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px;">
+          <div>
+            <h2 id="sectionPurposeTitle" style="margin-bottom: 4px;">Panoramica Completa del Workspace</h2>
+            <p id="sectionPurposeDesc">A cosa serve: Riunisce in un unico hub tutti gli strumenti operativi, di automazione AI, archiviazione e didattica.</p>
+          </div>
+          <span class="badge" id="sectionPurposeActions">Cosa puoi farci: Filtra per funzione, cerca strumenti o creane di nuovi</span>
+        </div>
+      </div>
+
+      <section class="tools-grid" id="toolsGrid"></section>
+    </main>
+  </div>
+
+  <div class="drawer-overlay" id="drawerOverlay">
+    <div class="side-sheet">
+      <div>
+        <div class="sheet-header">
+          <h2>Aggiungi Strumento</h2>
+          <button class="btn" id="closeDrawerBtn">Chiudi</button>
+        </div>
+        <form id="addToolForm">
+          <div class="form-group">
+            <label for="toolTitle">Nome Strumento</label>
+            <input type="text" id="toolTitle" class="form-control" required placeholder="Es. Calcolatore Preventivi">
+          </div>
+          <div class="form-group">
+            <label for="toolCategory">Sezione (Funzione d'uso)</label>
+            <select id="toolCategory" class="form-control" required></select>
+          </div>
+          <div class="form-group">
+            <label for="toolBadge">Tag di Contesto (Badge)</label>
+            <input type="text" id="toolBadge" class="form-control" required placeholder="Es. Lavoro, Casa, Botanica, Corso">
+          </div>
+          <div class="form-group">
+            <label for="toolDesc">Descrizione</label>
+            <textarea id="toolDesc" class="form-control" rows="3" required placeholder="Cosa fa questo strumento..."></textarea>
+          </div>
+          <div class="form-group">
+            <label for="toolStatus">Stato</label>
+            <input type="text" id="toolStatus" class="form-control" placeholder="Es. Operativo">
+          </div>
+          <div class="form-group">
+            <label for="toolUrl">File Modulo (nella stessa cartella)</label>
+            <input type="text" id="toolUrl" class="form-control" value="./template-modulo.html">
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;"><span>Salva nel Browser</span></button>
+        </form>
+      </div>
+      <div style="margin-top: 24px; padding-top: 16px; border-top: 3px solid #D2D4D0;">
+        <button type="button" class="btn" id="resetDefaultBtn" style="width: 100%;">Sincronizza con tools.json</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-box" id="toastBox">
+    <span class="toast-dot"></span>
+    <span id="toastMessage">Operazione completata</span>
+  </div>
+
+  <!-- Script nella stessa cartella -->
+  <script src="./app.js"></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prompt & Workflow Builder — Workspace Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Foglio di stile nella stessa cartella -->
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div class="workspace-wrapper" style="margin-left: 0;">
+    <header class="top-bar">
+      <a href="./index.html" class="btn">← Torna alla Dashboard</a>
+      <div class="top-actions">
+        <button type="button" class="btn" id="exportPromptsCsvBtn">Esporta CSV</button>
+        <button type="button" class="btn" id="exportPromptsJsonBtn">Esporta JSON</button>
+        <span class="badge">AI & Automazione</span>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="section-header">
+        <div>
+          <h1>Prompt & Workflow Builder</h1>
+          <p>Libreria strutturata di system prompt, template per automazioni AI e checklist operative.</p>
+        </div>
+        <span class="badge" id="promptCounterBadge">0 Template salvati</span>
+      </div>
+
+      <div class="tool-card" style="margin-bottom: 28px;">
+        <h2>Nuovo Template Prompt / Workflow</h2>
+        <form id="promptForm" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-top: 12px;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="promptTitle">Titolo Template</label>
+            <input type="text" id="promptTitle" class="form-control" required placeholder="Es. Analisi Requisiti Tecnici">
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="promptTag">Tipo / Tag</label>
+            <select id="promptTag" class="form-control">
+              <option value="System Prompt">System Prompt</option>
+              <option value="Workflow">Workflow</option>
+              <option value="Checklist">Checklist</option>
+              <option value="Refactoring">Refactoring</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="promptModel">Modello Target</label>
+            <input type="text" id="promptModel" class="form-control" placeholder="Es. Gemini / Agente Coding">
+          </div>
+          <div class="form-group" style="grid-column: 1 / -1; margin-bottom: 0;">
+            <label for="promptBody">Testo del Prompt / Istruzioni</label>
+            <textarea id="promptBody" class="form-control" rows="4" required placeholder="Inserisci istruzioni, vincoli, variabili {{input}} e formato output..."></textarea>
+          </div>
+          <div style="grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 12px;">
+            <button type="submit" class="btn btn-primary"><span>Salva nel Browser</span></button>
+          </div>
+        </form>
+      </div>
+
+      <div class="search-box" style="max-width: 100%; margin-bottom: 24px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke-width="2.4">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input type="text" id="promptSearchInput" placeholder="Filtra prompt per titolo, tag o contenuto...">
+      </div>
+
+      <div class="tools-grid" id="promptsGrid"></div>
+    </main>
+  </div>
+
+  <div class="toast-box" id="toastBox">
+    <span class="toast-dot"></span>
+    <span id="toastMessage">Operazione completata</span>
+  </div>
+
+  <script>
+    const STORAGE_KEY_PROMPTS = 'ws_module_prompts';
+    const defaultPrompts = [
+      {
+        id: 101,
+        title: "Architetto Frontend Workspace Hub",
+        tag: "System Prompt",
+        model: "Gemini / AI Studio",
+        body: "Genera moduli HTML5/CSS3 collegati a ./style.css rispettando palette #F3F5F0, #7C0B44, #277584, #A5B14F, bordi 3px solid #D2D4D0 e persistenza localStorage."
+      },
+      {
+        id: 102,
+        title: "Checklist Pre-Commit GitHub Pages",
+        tag: "Checklist",
+        model: "Workflow Operativo",
+        body: "1. Verifica percorsi relativi (./)\n2. Controlla chiavi localStorage univoche\n3. Testa export JSON e CSV\n4. Aggiorna version in tools.json"
+      }
+    ];
+
+    let promptsList = [];
+
+    function showToast(msg) {
+      const toast = document.getElementById('toastBox');
+      document.getElementById('toastMessage').textContent = msg;
+      toast.style.display = 'flex';
+      setTimeout(() => { toast.style.display = 'none'; }, 3000);
+    }
+
+    function copyPromptText(id) {
+      const found = promptsList.find(p => p.id === id);
+      if (!found) return;
+      const tempArea = document.createElement('textarea');
+      tempArea.value = found.body;
+      document.body.appendChild(tempArea);
+      tempArea.select();
+      document.execCommand('copy');
+      tempArea.remove();
+      showToast('Prompt copiato negli appunti');
+    }
+
+    function deletePromptItem(id) {
+      promptsList = promptsList.filter(p => p.id !== id);
+      localStorage.setItem(STORAGE_KEY_PROMPTS, JSON.stringify(promptsList));
+      renderPromptsGrid();
+      showToast('Template rimosso');
+    }
+
+    function renderPromptsGrid() {
+      const q = document.getElementById('promptSearchInput').value.toLowerCase().trim();
+      const grid = document.getElementById('promptsGrid');
+      grid.innerHTML = '';
+      let count = 0;
+
+      promptsList.forEach(item => {
+        if (item.title.toLowerCase().includes(q) || item.tag.toLowerCase().includes(q) || item.body.toLowerCase().includes(q)) {
+          count++;
+          const card = document.createElement('article');
+          card.className = 'tool-card';
+          card.innerHTML = `
+            <div>
+              <div class="card-top">
+                <span class="meta-tag">${item.model}</span>
+                <span class="badge">${item.tag}</span>
+              </div>
+              <h2>${item.title}</h2>
+              <pre style="white-space: pre-wrap; font-family: inherit; background: var(--bg-canvas); border: 3px solid var(--color-border); border-radius: 12px; padding: 12px; margin: 12px 0 20px 0;">${item.body}</pre>
+            </div>
+            <div class="card-footer">
+              <button type="button" class="btn" onclick="deletePromptItem(${item.id})">Elimina</button>
+              <button type="button" class="btn btn-primary" onclick="copyPromptText(${item.id})"><span>Copia Prompt</span></button>
+            </div>
+          `;
+          grid.appendChild(card);
+        }
+      });
+
+      document.getElementById('promptCounterBadge').textContent = `${count} Template salvat${count === 1 ? 'o' : 'i'}`;
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY_PROMPTS);
+        promptsList = saved ? JSON.parse(saved) : structuredClone(defaultPrompts);
+      } catch (err) {
+        promptsList = structuredClone(defaultPrompts);
+      }
+
+      document.getElementById('promptSearchInput').addEventListener('input', renderPromptsGrid);
+
+      document.getElementById('promptForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        promptsList.unshift({
+          id: Date.now(),
+          title: document.getElementById('promptTitle').value.trim(),
+          tag: document.getElementById('promptTag').value,
+          model: document.getElementById('promptModel').value.trim() || 'Universale',
+          body: document.getElementById('promptBody').value.trim()
+        });
+        localStorage.setItem(STORAGE_KEY_PROMPTS, JSON.stringify(promptsList));
+        e.target.reset();
+        renderPromptsGrid();
+        showToast('Template salvato in localStorage');
+      });
+
+      document.getElementById('exportPromptsJsonBtn').addEventListener('click', () => {
+        const a = document.createElement('a');
+        a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(promptsList, null, 2));
+        a.download = "workspace-prompts.json";
+        a.click();
+        showToast('Esportazione JSON completata');
+      });
+
+      document.getElementById('exportPromptsCsvBtn').addEventListener('click', () => {
+        const headers = ['id', 'title', 'tag', 'model', 'body'];
+        const rows = promptsList.map(p => headers.map(h => `"${String(p[h]).replace(/"/g, '""')}"`).join(','));
+        const a = document.createElement('a');
+        a.href = "data:text/csv;charset=utf-8," + encodeURIComponent([headers.join(','), ...rows].join('\n'));
+        a.download = "workspace-prompts.csv";
+        a.click();
+        showToast('Esportazione CSV completata');
+      });
+
+      renderPromptsGrid();
+    });
+  </script>
+</body>
+</html>
