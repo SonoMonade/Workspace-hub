@@ -9,7 +9,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <!-- Foglio di stile nella stessa cartella -->
   <link rel="stylesheet" href="./style.css">
 </head>
 <body>
@@ -28,7 +27,8 @@
         <input type="text" id="searchInput" placeholder="Cerca strumento, funzione o tag...">
       </div>
       <div class="top-actions">
-        <span class="meta-tag" id="schemaVersionTag">v2.1.0</span>
+        <span class="meta-tag" id="schemaVersionTag">v2.2.0</span>
+        <button class="btn btn-cloud" id="openCloudDrawerBtn">☁️ Cloud GitHub</button>
         <input type="file" id="importJsonInput" accept=".json" style="display: none;">
         <button class="btn" id="importJsonBtn">Importa JSON</button>
         <button class="btn" id="exportJsonBtn">Esporta tools.json</button>
@@ -53,7 +53,7 @@
             <h2 id="sectionPurposeTitle" style="margin-bottom: 4px;">Panoramica Completa del Workspace</h2>
             <p id="sectionPurposeDesc">A cosa serve: Riunisce in un unico hub tutti gli strumenti operativi, di automazione AI, archiviazione e didattica.</p>
           </div>
-          <span class="badge" id="sectionPurposeActions">Cosa puoi farci: Filtra per funzione, cerca strumenti o creane di nuovi</span>
+          <span class="badge" id="sectionPurposeActions">Cosa puoi farci: Usa "☁️ Cloud GitHub" per sincronizzare i dati online</span>
         </div>
       </div>
 
@@ -61,6 +61,7 @@
     </main>
   </div>
 
+  <!-- Drawer 1: Aggiungi Strumento -->
   <div class="drawer-overlay" id="drawerOverlay">
     <div class="side-sheet">
       <div>
@@ -102,12 +103,49 @@
     </div>
   </div>
 
+  <!-- Drawer 2: Sincronizzazione Gratuita GitHub Cloud -->
+  <div class="drawer-overlay" id="cloudDrawerOverlay">
+    <div class="side-sheet">
+      <div>
+        <div class="sheet-header">
+          <h2>☁️ Sync GitHub Cloud</h2>
+          <button class="btn" id="closeCloudDrawerBtn">Chiudi</button>
+        </div>
+        <p style="margin-bottom: 16px;">Salva e ripristina automaticamente <strong>tutti i tuoi dati</strong> (Schede Botaniche, Tipografia, Preventivi, Prompt e Dashboard) nel tuo repository GitHub gratuito.</p>
+        
+        <form id="cloudConfigForm">
+          <div class="form-group">
+            <label for="ghOwner">Utente GitHub</label>
+            <input type="text" id="ghOwner" class="form-control" value="sonomonade" required>
+          </div>
+          <div class="form-group">
+            <label for="ghRepo">Nome Repository</label>
+            <input type="text" id="ghRepo" class="form-control" value="sonomonade.github.io" required>
+          </div>
+          <div class="form-group">
+            <label for="ghToken">GitHub Personal Access Token</label>
+            <input type="password" id="ghToken" class="form-control" placeholder="ghp_xxxxxxxxxxxx" required>
+          </div>
+          <button type="submit" class="btn" style="width: 100%; margin-bottom: 20px;">Salva Configurazione</button>
+        </form>
+
+        <div style="display: flex; flex-direction: column; gap: 12px; padding-top: 16px; border-top: 3px solid var(--color-border);">
+          <button type="button" class="btn btn-primary" id="pushToGithubCloudBtn" style="width: 100%;"><span>↑ Salva Tutti i Dati sul Cloud</span></button>
+          <button type="button" class="btn" id="pullFromGithubCloudBtn" style="width: 100%;">↓ Scarica Dati dal Cloud</button>
+        </div>
+      </div>
+
+      <div style="margin-top: 24px; padding-top: 16px; border-top: 3px solid var(--color-border);">
+        <span class="meta-tag" id="cloudLastSyncLabel">Stato: In attesa di configurazione</span>
+      </div>
+    </div>
+  </div>
+
   <div class="toast-box" id="toastBox">
     <span class="toast-dot"></span>
     <span id="toastMessage">Operazione completata</span>
   </div>
 
-  <!-- Script nella stessa cartella -->
   <script src="./app.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
