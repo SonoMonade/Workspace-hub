@@ -1,41 +1,16 @@
-const CACHE_NAME = 'workspace-hub-v2.1.0';
-const ASSETS_TO_CACHE = [
-  './',
-  './index.html',
-  './manifest.json',
-  './assets/css/style.css',
-  './assets/js/app.js',
-  './data/tools.json',
-  './modules/template-modulo.html',
-  './modules/prompt-builder.html',
-  './modules/preventivi.html',
-  './modules/tipografia.html'
-];
-
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS_TO_CACHE))
-  );
-  self.skipWaiting();
-});
-
-self.addEventListener('activate', event => {
-  event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    )
-  );
-  self.clients.claim();
-});
-
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    fetch(event.request)
-      .then(res => {
-        const resClone = res.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(event.request, resClone));
-        return res;
-      })
-      .catch(() => caches.match(event.request))
-  );
-});
+{
+"name": "Workspace Hub",
+"short_name": "Workspace",
+"description": "Gestionale personale modulare organizzato per funzione d'uso",
+"start_url": "./index.html",
+"display": "standalone",
+"background_color": "#F3F5F0",
+"theme_color": "#7C0B44",
+"icons": [
+{
+"src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='36' fill='%23F3F5F0' stroke='%237C0B44' stroke-width='12'/%3E%3Ctext x='50%25' y='56%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-weight='700' font-size='96' fill='%237C0B44'%3EW%3C/text%3E%3C/svg%3E",
+"sizes": "192x192",
+"type": "image/svg+xml"
+}
+]
+}
