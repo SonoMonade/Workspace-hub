@@ -5,7 +5,110 @@ operativita: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke
 archivi: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#277584" stroke-width="2.2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>',
 'didattica-lab': '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#277584" stroke-width="2.2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>'
 };
-let workspaceState = { version: "2.2.0", sections: [], tools: [] };
+// Dati predefiniti integrati: garantiscono che il sito carichi SEMPRE anche senza tools.json
+const BUILTIN_DEFAULT_DATA = {
+version: "2.3.0",
+sections: [
+{
+id: "operativita",
+label: "Operatività & Gestione",
+shortLabel: "Operatività",
+icon: "operativita",
+purpose: "A cosa servono: Strumenti per pianificare attività, calcolare tariffe/preventivi e amministrare spese o scadenze.",
+capabilities: "Cosa puoi farci: Calcolare importi, monitorare scadenze, aggiornare stati ed esportare CSV/JSON."
+},
+{
+id: "ai-automazione",
+label: "AI & Automazione",
+shortLabel: "AI & Flow",
+icon: "ai-automazione",
+purpose: "A cosa servono: Strumenti per progettare, strutturare e riutilizzare system prompt, flussi operativi e checklist AI.",
+capabilities: "Cosa puoi farci: Archiviare template di prompt, copiare istruzioni con un clic e standardizzare i flussi."
+},
+{
+id: "archivi",
+label: "Archivi & Conoscenza",
+shortLabel: "Archivi",
+icon: "archivi",
+purpose: "A cosa servono: Strumenti per catalogare schede botaniche, impaginare documenti e consultare guide di riferimento.",
+capabilities: "Cosa puoi farci: Stampare etichette botaniche, impaginare in pt ed esportare Word / Google Docs."
+},
+{
+id: "didattica-lab",
+label: "Didattica & Lab",
+shortLabel: "Lab",
+icon: "didattica-lab",
+purpose: "A cosa servono: Spazio dedicato a dispense formative, esercitazioni guidate e prototipi di nuovi moduli.",
+capabilities: "Cosa puoi farci: Preparare materiali didattici e testare nuovi strumenti."
+}
+],
+tools: [
+{
+id: 1,
+title: "Prompt & Workflow Builder",
+category: "ai-automazione",
+badge: "Prompt & Workflow",
+desc: "Libreria strutturata di system prompt, template per automazioni AI e checklist di controllo qualità.",
+status: "Operativo",
+url: "./prompt-builder.html"
+},
+{
+id: 2,
+title: "Gestione Attività & Preventivi",
+category: "operativita",
+badge: "Lavoro",
+desc: "Calcolatore rapido tariffe, scadenzario consegne e modelli di preventivo pronti all'esportazione.",
+status: "Operativo",
+url: "./preventivi.html"
+},
+{
+id: 3,
+title: "Ripartizione Utenze & Casa",
+category: "operativita",
+badge: "Casa",
+desc: "Registro condiviso bollette (luce, gas, fibra), scadenze domestiche e promemoria manutenzione.",
+status: "In pari",
+url: "./template-modulo.html"
+},
+{
+id: 4,
+title: "Archivio Botanico & Stampa",
+category: "archivi",
+badge: "Botanica",
+desc: "Catalogo personale con generatore di layout ottimizzati per etichette termiche e schede tecniche.",
+status: "Operativo",
+url: "./botanica.html"
+},
+{
+id: 5,
+title: "Note di Viaggio & Fotografia",
+category: "archivi",
+badge: "Fotografia",
+desc: "Tracce itinerari, appunti sulla luce, checklist attrezzatura e selezione progetti personali.",
+status: "Archivio 2026",
+url: "./template-modulo.html"
+},
+{
+id: 6,
+title: "Knowledge Base & Guide",
+category: "archivi",
+badge: "Documenti",
+desc: "Dispense, link utili, manuali rapidi e documentazione tecnica di riferimento quotidiano.",
+status: "Consultazione",
+url: "./template-modulo.html"
+},
+{
+id: 7,
+title: "Strumento Tipografico & Impaginazione",
+category: "archivi",
+badge: "Tipografia",
+desc: "Calcolatore scale in pt, margini pagina, griglia a colonne ed esportazione Word / Google Docs.",
+status: "Operativo",
+url: "./tipografia.html"
+}
+]
+};
+let workspaceState = JSON.parse(JSON.stringify(BUILTIN_DEFAULT_DATA));
 let currentCategory = 'all';
 const toolsGrid = document.getElementById('toolsGrid');
 const searchInput = document.getElementById('searchInput');
@@ -20,23 +123,39 @@ toast.style.display = 'flex';
 setTimeout(() => { toast.style.display = 'none'; }, 3500);
 }
 async function initData() {
-const savedRaw = localStorage.getItem('ws_dashboard_state');
-const savedState = savedRaw ? JSON.parse(savedRaw) : null;
+// Rimuove eventuali vecchi Service Worker bloccati in cache
+if ('serviceWorker' in navigator) {
+navigator.serviceWorker.getRegistrations().then(regs => {
+for (let reg of regs) reg.unregister();
+}).catch(() => {});
+}
+let savedState = null;
 try {
-const res = await fetch('./tools.json?v=' + Date.now());
-if (!res.ok) throw new Error('Offline o errore fetch');
-const remoteData = await res.json();
-if (savedState && savedState.version === remoteData.version) {
+const savedRaw = localStorage.getItem('ws_dashboard_state');
+if (savedRaw) savedState = JSON.parse(savedRaw);
+} catch (e) {
+savedState = null;
+}
+if (savedState && Array.isArray(savedState.sections) && savedState.sections.length > 0 && Array.isArray(savedState.tools) && savedState.tools.length > 0) {
 workspaceState = savedState;
 } else {
-const customTools = savedState && Array.isArray(savedState.tools) ? savedState.tools.filter(t => t.isCustom) : [];
+workspaceState = JSON.parse(JSON.stringify(BUILTIN_DEFAULT_DATA));
+localStorage.setItem('ws_dashboard_state', JSON.stringify(workspaceState));
+}
+try {
+const res = await fetch('./tools.json?v=' + Date.now());
+if (res.ok) {
+const remoteData = await res.json();
+if (remoteData && Array.isArray(remoteData.sections) && remoteData.sections.length > 0) {
+const customTools = workspaceState.tools.filter(t => t.isCustom);
 workspaceState = { ...remoteData, tools: [...customTools, ...remoteData.tools] };
 localStorage.setItem('ws_dashboard_state', JSON.stringify(workspaceState));
 }
-} catch (e) {
-if (savedState) workspaceState = savedState;
 }
-document.getElementById('schemaVersionTag').textContent = 'v' + (workspaceState.version || '2.2.0');
+} catch (e) {
+// Usa silenziosamente i dati integrati
+}
+document.getElementById('schemaVersionTag').textContent = 'v' + (workspaceState.version || '2.3.0');
 loadCloudConfig();
 renderNavigationAndFilters();
 renderGrid();
@@ -48,7 +167,7 @@ const actionsEl = document.getElementById('sectionPurposeActions');
 if (currentCategory === 'all') {
 titleEl.textContent = 'Panoramica Completa del Workspace';
 descEl.textContent = 'A cosa serve: Riunisce in un unico hub tutti gli strumenti operativi, di automazione AI, archiviazione e didattica.';
-actionsEl.textContent = 'Cosa puoi farci: Usa "☁️ Cloud GitHub" per sincronizzare i dati online';
+actionsEl.textContent = 'Cosa puoi farci: Filtra per funzione, cerca strumenti o salva sul Cloud';
 return;
 }
 const activeSec = workspaceState.sections.find(s => s.id === currentCategory);
@@ -130,7 +249,7 @@ prompts: JSON.parse(localStorage.getItem('ws_module_prompts') || 'null')
 async function pushAllDataToGithub() {
 const cfg = JSON.parse(localStorage.getItem(CLOUD_CFG_KEY) || '{}');
 if (!cfg.owner || !cfg.repo || !cfg.token) {
-showToast('Inserisci prima Utente, Repository e Token');
+showToast('Inserisci prima Utente, Repository e Chiave');
 return;
 }
 const apiUrl = ⁠https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/backup-workspace.json⁠;
@@ -164,13 +283,13 @@ localStorage.setItem(CLOUD_CFG_KEY, JSON.stringify(cfg));
 document.getElementById('cloudLastSyncLabel').textContent = 'Ultimo sync: ' + nowLabel;
 showToast('Tutti i dati salvati su GitHub Cloud!');
 } catch (err) {
-showToast('Errore sync: verifica Token o Repository');
+showToast('Errore sync: verifica Chiave o Repository');
 }
 }
 async function pullAllDataFromGithub() {
 const cfg = JSON.parse(localStorage.getItem(CLOUD_CFG_KEY) || '{}');
 if (!cfg.owner || !cfg.repo || !cfg.token) {
-showToast('Inserisci prima Utente, Repository e Token');
+showToast('Inserisci prima Utente, Repository e Chiave');
 return;
 }
 const apiUrl = ⁠https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/backup-workspace.json?t=${Date.now()}⁠;
@@ -193,7 +312,7 @@ if (parsed.prompts) localStorage.setItem('ws_module_prompts', JSON.stringify(par
 await initData();
 showToast('Dati ripristinati dal Cloud GitHub!');
 } catch (err) {
-showToast('Nessun backup trovato o Token non valido');
+showToast('Nessun backup trovato o Chiave non valida');
 }
 }
 const cloudDrawerOverlay = document.getElementById('cloudDrawerOverlay');
@@ -210,7 +329,7 @@ repo: document.getElementById('ghRepo').value.trim(),
 token: document.getElementById('ghToken').value.trim()
 };
 localStorage.setItem(CLOUD_CFG_KEY, JSON.stringify(updated));
-showToast('Configurazione GitHub Cloud salvata');
+showToast('Configurazione salvata');
 });
 document.getElementById('pushToGithubCloudBtn').addEventListener('click', pushAllDataToGithub);
 document.getElementById('pullFromGithubCloudBtn').addEventListener('click', pullAllDataFromGithub);
@@ -243,7 +362,7 @@ document.getElementById('resetDefaultBtn').addEventListener('click', async () =>
 localStorage.removeItem('ws_dashboard_state');
 await initData();
 drawerOverlay.classList.remove('open');
-showToast('Dati sincronizzati con tools.json');
+showToast('Strumenti base ripristinati');
 });
 document.getElementById('importJsonBtn').addEventListener('click', () => document.getElementById('importJsonInput').click());
 document.getElementById('importJsonInput').addEventListener('change', (e) => {
@@ -258,7 +377,7 @@ workspaceState = parsed;
 localStorage.setItem('ws_dashboard_state', JSON.stringify(workspaceState));
 renderNavigationAndFilters();
 renderGrid();
-showToast('Backup tools.json importato');
+showToast('Backup importato');
 }
 } catch (err) { showToast('Errore file JSON'); }
 };
