@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Calendario Impegni & Life Hub — Workspace Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <style>
+    .quick-add-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 14px 16px;
+      background-color: var(--bg-surface);
+      border: var(--border-width) solid var(--color-secondary);
+      border-radius: var(--radius-card);
+      margin-bottom: 20px;
+      align-items: center;
+    }
+    .quick-add-input {
+      flex: 1 1 260px;
+      min-height: 44px;
+      border: var(--border-width) solid var(--color-border);
+      border-radius: var(--radius-pill);
+      padding: 0 18px;
+      background-color: var(--bg-canvas);
+      font-family: inherit;
+      outline: none;
+    }
+    .quick-add-input:focus {
+      border-color: var(--color-primary);
+    }
+    .date-nav-bar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .date-nav-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .agenda-item {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      background-color: var(--bg-surface);
+      border: var(--border-width) solid var(--color-border);
+      border-radius: var(--radius-card);
+      margin-bottom: 10px;
+      transition: border-color 0.15s ease;
+    }
+    .agenda-item.is-priority {
+      border-color: var(--color-primary);
+    }
+    .agenda-item.is-done {
+      opacity: 0.65;
+    }
+    .agenda-item.is-done .agenda-title {
+      text-decoration: line-through;
+    }
+    .agenda-left {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      flex: 1;
+      min-width: 0;
+    }
+    .task-checkbox {
+      width: 26px;
+      height: 26px;
+      min-width: 26px;
+      border-radius: 8px;
+      border: var(--border-width-strong) solid var(--color-secondary);
+      background-color: var(--bg-canvas);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: #FFFFFF;
+      margin-top: 2px;
+    }
+    .task-checkbox.checked {
+      background-color: var(--color-secondary);
+    }
+    .time-pill {
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      background-color: var(--color-primary);
+      color: #FFFFFF;
+      font-weight: 700;
+      font-size: 8.5pt;
+      white-space: nowrap;
+      margin-top: 2px;
+    }
+    .agenda-title {
+      font-weight: 700;
+      font-size: 10.5pt;
+      color: var(--color-ink);
+      word-break: break-word;
+    }
+    .agenda-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-top: 4px;
+      font-size: 8.5pt;
+      color: var(--color-muted);
+    }
+    .agenda-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .btn-mini {
+      min-height: 36px;
+      padding: 0 12px;
+      font-size: 8.5pt;
+    }
+    .month-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 6px;
+    }
+    .month-weekday {
+      text-align: center;
+      font-weight: 700;
+      font-size: 8.5pt;
+      color: var(--color-secondary);
+      padding: 6px 0;
+    }
+    .month-cell {
+      min-height: 76px;
+      background-color: var(--bg-surface);
+      border: var(--border-width) solid var(--color-border);
+      border-radius: 12px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+      text-align: left;
+    }
+    .month-cell:hover {
+      border-color: var(--color-secondary);
+    }
+    .month-cell.is-selected {
+      border-color: var(--color-primary);
+      background-color: var(--bg-canvas);
+    }
+    .month-cell.is-outside {
+      opacity: 0.4;
+    }
+    .month-day-num {
+      font-weight: 700;
+      font-size: 9.5pt;
+    }
+    .month-dots {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 6px;
+    }
+    .event-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--color-secondary);
+    }
+    .event-dot.priority {
+      background-color: var(--color-primary);
+    }
+    .event-dot.accent {
+      background-color: var(--color-accent);
+    }
+    .week-day-group {
+      margin-bottom: 20px;
+    }
+    .week-day-header {
+      font-weight: 700;
+      color: var(--color-secondary);
+      padding-bottom: 6px;
+      margin-bottom: 10px;
+      border-bottom: var(--border-width) solid var(--color-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .type-toggle-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    @media (max-width: 600px) {
+      .month-cell {
+        min-height: 58px;
+        padding: 6px;
+      }
+      .agenda-item {
+        flex-direction: column;
+      }
+      .agenda-actions {
+        width: 100%;
+        justify-content: flex-end;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="workspace-wrapper full-width-module">
+    <header class="top-bar">
+      <a href="./index.html" class="btn">← Dashboard</a>
+      <div class="top-actions">
+        <button type="button" class="btn btn-cloud" id="syncHubBtn">🔄 Sincronizza Hub</button>
+        <button type="button" class="btn" id="openEmailModalBtn">✉️ Invia Email</button>
+        <button type="button" class="btn" id="exportIcsBtn">📅 .ics</button>
+        <button type="button" class="btn btn-primary" id="openNewItemDrawerBtn"><span>+ Impegno</span></button>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="section-header">
+        <div>
+          <h1>Calendario Impegni & Life Hub</h1>
+          <p>Appuntamenti, task giornalieri, irrigazione piante, bollette e consegne in un'unica vista accessibile.</p>
+        </div>
+        <span class="badge" id="calendarSummaryBadge">Oggi</span>
+      </div>
+
+      <!-- INSERIMENTO RAPIDO (VOCALE O TESTO) -->
+      <form id="quickAddForm" class="quick-add-bar" aria-label="Inserimento rapido">
+        <input type="text" id="quickAddInput" class="quick-add-input" placeholder="Scrivi o detta al volo: es. 'Domani 15:30 Call progetto' oppure 'Annaffiare Monstera'..." required>
+        <select id="quickAddContext" class="form-control" style="width: auto; min-width: 150px;" aria-label="Ambito">
+          <option value="Lavoro & Progetti">Lavoro & Progetti</option>
+          <option value="Didattica & Corsi">Didattica & Corsi</option>
+          <option value="Casa & Utenze">Casa & Utenze</option>
+          <option value="Botanica">Botanica</option>
+          <option value="Personale & Salute">Personale & Salute</option>
+        </select>
+        <button type="submit" class="btn btn-primary"><span>+ Aggiungi</span></button>
+      </form>
+
+      <!-- SELETTORE VISTE & NAVIGAZIONE DATA -->
+      <div class="date-nav-bar">
+        <div class="filter-bar" style="margin-bottom: 0; width: auto;">
+          <button type="button" class="chip active" data-cal-view="focus">Oggi / Focus</button>
+          <button type="button" class="chip" data-cal-view="week">Settimana</button>
+          <button type="button" class="chip" data-cal-view="month">Mese</button>
+          <button type="button" class="chip" data-cal-view="backlog">Da Pianificare</button>
+        </div>
+
+        <div class="date-nav-controls">
+          <button type="button" class="btn btn-mini" id="prevDateBtn" aria-label="Periodo precedente">←</button>
+          <button type="button" class="btn btn-mini" id="todayDateBtn">Oggi</button>
+          <span class="badge" id="currentDateLabel" style="min-width: 150px; text-align: center;">Data</span>
+          <button type="button" class="btn btn-mini" id="nextDateBtn" aria-label="Periodo successivo">→</button>
+        </div>
+      </div>
+
+      <!-- FILTRO AMBITO DI VITA -->
+      <div class="filter-bar" id="contextFilterBar">
+        <button type="button" class="chip active" data-ctx-filter="all">Tutti gli ambiti</button>
+        <button type="button" class="chip" data-ctx-filter="Lavoro & Progetti">Lavoro</button>
+        <button type="button" class="chip" data-ctx-filter="Didattica & Corsi">Didattica</button>
+        <button type="button" class="chip" data-ctx-filter="Casa & Utenze">Casa & Bollette</button>
+        <button type="button" class="chip" data-ctx-filter="Botanica">Botanica</button>
+        <button type="button" class="chip" data-ctx-filter="Personale & Salute">Personale</button>
+      </div>
+
+      <!-- AREA PRINCIPALE RENDERIZZAZIONE VISTE -->
+      <section id="calendarViewContainer" aria-live="polite"></section>
+    </main>
+  </div>
+
+  <!-- CASSETTO 1: NUOVO / MODIFICA APPUNTAMENTO O TASK -->
+  <div class="drawer-overlay" id="itemDrawerOverlay" role="dialog" aria-modal="true" aria-labelledby="itemDrawerTitle">
+    <div class="side-sheet">
+      <div>
+        <div class="sheet-header">
+          <h2 id="itemDrawerTitle">Nuovo Impegno</h2>
+          <button type="button" class="btn" id="closeItemDrawerBtn">Chiudi</button>
+        </div>
+
+        <form id="detailedItemForm">
+          <input type="hidden" id="editItemId">
+
+          <div class="type-toggle-group">
+            <button type="button" class="chip active" id="typeBtnTask" data-item-type="task">✓ Task / Azione</button>
+            <button type="button" class="chip" id="typeBtnEvent" data-item-type="event">🕒 Appuntamento</button>
+          </div>
+          <input type="hidden" id="itemTypeInput" value="task">
+
+          <div class="form-group">
+            <label for="itemTitleInput">Titolo</label>
+            <input type="text" id="itemTitleInput" class="form-control" required placeholder="Es. Lezione Corso / Pagare Bolletta">
+          </div>
+
+          <div class="form-group">
+            <label for="itemDateInput">Data (lascia vuota per "Da Pianificare")</label>
+            <input type="date" id="itemDateInput" class="form-control">
+          </div>
+
+          <div id="eventTimeFields" style="display: none;">
+            <div class="form-grid" style="margin-top: 0; margin-bottom: 14px;">
+              <div class="form-group">
+                <label for="itemStartTime">Ora Inizio</label>
+                <input type="time" id="itemStartTime" class="form-control" value="10:00">
+              </div>
+              <div class="form-group">
+                <label for="itemEndTime">Ora Fine</label>
+                <input type="time" id="itemEndTime" class="form-control" value="11:00">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="itemContextInput">Ambito di Vita</label>
+            <select id="itemContextInput" class="form-control">
+              <option value="Lavoro & Progetti">Lavoro & Progetti</option>
+              <option value="Didattica & Corsi">Didattica & Corsi</option>
+              <option value="Casa & Utenze">Casa & Utenze</option>
+              <option value="Botanica">Botanica</option>
+              <option value="Personale & Salute">Personale & Salute</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="itemRecurrenceInput">Ricorrenza</label>
+            <select id="itemRecurrenceInput" class="form-control">
+              <option value="none">Nessuna (singolo)</option>
+              <option value="daily">Ogni giorno</option>
+              <option value="weekly">Ogni settimana</option>
+              <option value="biweekly">Ogni 2 settimane</option>
+              <option value="monthly">Ogni mese</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="itemNotesInput">Note / Link</label>
+            <textarea id="itemNotesInput" class="form-control" rows="2" placeholder="Dettagli, link riunione o riferimenti..."></textarea>
+          </div>
+
+          <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px; cursor: pointer; font-weight: 600;">
+            <input type="checkbox" id="itemPriorityInput" style="width: 20px; height: 20px; accent-color: var(--color-primary);">
+            <span>Segna come Prioritario / Focus</span>
+          </label>
+
+          <button type="submit" class="btn btn-primary" style="width: 100%;"><span>Salva nel Calendario</span></button>
+        </form>
+      </div>
+
+      <div style="margin-top: 20px; padding-top: 14px; border-top: var(--border-width) solid var(--color-border);">
+        <button type="button" class="btn" id="deleteItemDrawerBtn" style="width: 100%; display: none;">Elimina Impegno</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CASSETTO 2: INVIO PROMEMORIA & BRIEFING VIA EMAIL -->
+  <div class="drawer-overlay" id="emailDrawerOverlay" role="dialog" aria-modal="true" aria-labelledby="emailDrawerTitle">
+    <div class="side-sheet">
+      <div>
+        <div class="sheet-header">
+          <h2 id="emailDrawerTitle">✉️ Invia Agenda via Email</h2>
+          <button type="button" class="btn" id="closeEmailDrawerBtn">Chiudi</button>
+        </div>
+
+        <p style="margin-bottom: 14px; font-size: 9pt;">Invia subito il riepilogo degli appuntamenti, dei task e delle scadenze usando il servizio <strong>EmailJS</strong> configurato nella Dashboard.</p>
+
+        <form id="sendAgendaEmailForm">
+          <div class="form-group">
+            <label for="emailRecipientInput">Destinatario Email</label>
+            <input type="email" id="emailRecipientInput" class="form-control" required placeholder="tua.email@esempio.it">
+          </div>
+
+          <div class="form-group">
+            <label for="emailScopeSelect">Cosa includere nel messaggio</label>
+            <select id="emailScopeSelect" class="form-control">
+              <option value="selected">Impegni del giorno selezionato</option>
+              <option value="next7">Riepilogo prossimi 7 giorni + Scadenze</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="emailPreviewText">Anteprima Testo Email</label>
+            <textarea id="emailPreviewText" class="form-control" rows="8" readonly></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-primary" style="width: 100%;"><span>✉️ Spedisci Email Ora</span></button>
+        </form>
+      </div>
+
+      <div style="margin-top: 16px; padding-top: 12px; border-top: var(--border-width) solid var(--color-border);">
+        <span class="meta-tag" id="emailJsStatusTag">Verifica stato EmailJS...</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-box" id="toastBox" role="status" aria-live="polite">
+    <span class="toast-dot"></span>
+    <span id="toastMessage">Operazione completata</span>
+  </div>
+
+  <script>
+    const STORAGE_KEY_CALENDARIO = 'ws_module_calendario';
+    const EMAILJS_CFG_KEY = 'ws_emailjs_cfg';
+    const AUTH_KEY = 'ws_user_account_v1';
+
+    function toIsoDate(d) {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
+
+    function addDaysIso(isoStr, days) {
+      const base = isoStr ? new Date(isoStr + 'T12:00:00') : new Date();
+      base.setDate(base.getDate() + days);
+      return toIsoDate(base);
+    }
+
+    function addMonthsIso(isoStr, months) {
+      const base = isoStr ? new Date(isoStr + 'T12:00:00') : new Date();
+      base.setMonth(base.getMonth() + months);
+      return toIsoDate(base);
+    }
+
+    const todayIso = toIsoDate(new Date());
+
+    const defaultCalendarItems = [
+      {
+        id: 901,
+        type: 'event',
+        title: 'Pianificazione settimanale Workspace Hub',
+        date: todayIso,
+        startTime: '09:30',
+        endTime: '10:30',
+        context: 'Lavoro & Progetti',
+        recurrence: 'weekly',
+        notes: 'Controllo scadenze preventivi, bollette e piante.',
+        priority: true,
+        done: false
+      },
+      {
+        id: 902,
+        type: 'task',
+        title: 'Controllare irrigazione piante tropicali',
+        date: todayIso,
+        startTime: '',
+        endTime: '',
+        context: 'Botanica',
+        recurrence: 'weekly',
+        notes: 'Verificare umidità terriccio prima di bagnare.',
+        priority: false,
+        done: false
+      }
+    ];
+
+    let calendarItems = [];
+    let currentView = 'focus';
+    let currentContextFilter = 'all';
+    let selectedDateIso = todayIso;
+
+    function showToast(msg) {
+      const toast = document.getElementById('toastBox');
+      document.getElementById('toastMessage').textContent = msg;
+      toast.style.display = 'flex';
+      setTimeout(() => { toast.style.display = 'none'; }, 3200);
+    }
+
+    function saveCalendarItems() {
+      localStorage.setItem(STORAGE_KEY_CALENDARIO, JSON.stringify(calendarItems));
+      renderCalendar();
+    }
+
+    function formatReadableDate(isoStr) {
+      if (!isoStr) return 'Senza data';
+      const d = new Date(isoStr + 'T12:00:00');
+      return d.toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric', month: 'short' });
+    }
+
+    // --- SINCRONIZZAZIONE ATTIVA CON FINANZA, BOTANICA E PREVENTIVI ---
+    function syncWithWorkspaceModules(silent = false) {
+      let importedCount = 0;
+
+      // 1. Finanza: Bollette da pagare
+      try {
+        const finRaw = localStorage.getItem('ws_module_finanza');
+        if (finRaw) {
+          const finData = JSON.parse(finRaw);
+          if (Array.isArray(finData.bollette)) {
+            finData.bollette.forEach(b => {
+              const extId = `fin_bol_${b.id}`;
+              const existing = calendarItems.find(it => it.extRef === extId);
+              if (!b.pagata && !existing) {
+                calendarItems.push({
+                  id: Date.now() + importedCount,
+                  extRef: extId,
+                  sourceModule: 'finanza',
+                  sourceId: b.id,
+                  type: 'task',
+                  title: `💶 Bolletta ${b.fornitore} (€ ${Number(b.importo).toFixed(2)})`,
+                  date: b.scadenza || todayIso,
+                  startTime: '',
+                  endTime: '',
+                  context: 'Casa & Utenze',
+                  recurrence: 'none',
+                  notes: `Frequenza: ${b.frequenza} • Quota tua: ${b.quotaTuaPerc}%`,
+                  priority: true,
+                  done: false
+                });
+                importedCount++;
+              } else if (b.pagata && existing) {
+                existing.done = true;
+              }
+            });
+          }
+        }
+      } catch (e) {}
+
+      // 2. Botanica: Promemoria Irrigazione
+      try {
+        const botRaw = localStorage.getItem('ws_module_botanica');
+        if (botRaw) {
+          const botList = JSON.parse(botRaw);
+          if (Array.isArray(botList)) {
+            botList.forEach(plant => {
+              const extId = `bot_water_${plant.id}`;
+              const hasActive = calendarItems.some(it => it.extRef === extId && !it.done);
+              if (!hasActive) {
+                let daysCycle = 7;
+                const acquaStr = (plant.acqua || '').toLowerCase();
+                if (acquaStr.includes('frequente')) daysCycle = 3;
+                else if (acquaStr.includes('scarsa')) daysCycle = 15;
+
+                calendarItems.push({
+                  id: Date.now() + 100 + importedCount,
+                  extRef: extId,
+                  sourceModule: 'botanica',
+                  customDaysCycle: daysCycle,
+                  type: 'task',
+                  title: `💧 Annaffiare ${plant.nomeComune} [${plant.codice || 'BOT'}]`,
+                  date: todayIso,
+                  startTime: '',
+                  endTime: '',
+                  context: 'Botanica',
+                  recurrence: 'custom_days',
+                  notes: `Irrigazione: ${plant.acqua} • Luce: ${plant.luce}`,
+                  priority: false,
+                  done: false
+                });
+                importedCount++;
+              }
+            });
+          }
+        }
+      } catch (e) {}
+
+      // 3. Preventivi: Consegne attive
+      try {
+        const prevRaw = localStorage.getItem('ws_module_preventivi');
+        if (prevRaw) {
+          const prevList = JSON.parse(prevRaw);
+          if (Array.isArray(prevList)) {
+            prevList.forEach(p => {
+              const extId = `prev_due_${p.id}`;
+              const isOpen = p.stato === 'In Lavorazione' || p.stato === 'Approvato';
+              const existing = calendarItems.find(it => it.extRef === extId);
+              if (isOpen && !existing) {
+                calendarItems.push({
+                  id: Date.now() + 200 + importedCount,
+                  extRef: extId,
+                  sourceModule: 'preventivi',
+                  type: 'task',
+                  title: `📋 Consegna: ${p.cliente} — ${p.attivita}`,
+                  date: p.scadenza || todayIso,
+                  startTime: '',
+                  endTime: '',
+                  context: 'Lavoro & Progetti',
+                  recurrence: 'none',
+                  notes: `Stato: ${p.stato} • Ore: ${p.ore}h`,
+                  priority: true,
+                  done: false
+                });
+                importedCount++;
+              }
+            });
+          }
+        }
+      } catch (e) {}
+
+      saveCalendarItems();
+      if (!silent) {
+        showToast(importedCount > 0
+          ? `Sincronizzati ${importedCount} nuovi impegni dal Workspace!`
+          : 'Tutto già sincronizzato con Finanza, Botanica e Preventivi');
+      }
+    }
+
+    // --- AZIONI SUGLI IMPEGNI ---
+    function toggleItemDone(id) {
+      const item = calendarItems.find(it => it.id === id);
+      if (!item) return;
+      item.done = !item.done;
+
+      if (item.done) {
+        // Se proviene da Finanza, segna la bolletta come pagata anche lì!
+        if (item.sourceModule === 'finanza' && item.sourceId) {
+          try {
+            const finRaw = localStorage.getItem('ws_module_finanza');
+            if (finRaw) {
+              const finData = JSON.parse(finRaw);
+              const b = (finData.bollette || []).find(x => x.id === item.sourceId);
+              if (b && !b.pagata) {
+                b.pagata = true;
+                localStorage.setItem('ws_module_finanza', JSON.stringify(finData));
+              }
+            }
+          } catch (e) {}
+        }
+
+        // Gestione ricorrenza intelligente (partendo dalla data reale di completamento)
+        if (item.recurrence && item.recurrence !== 'none') {
+          let nextDate = todayIso;
+          if (item.recurrence === 'daily') nextDate = addDaysIso(todayIso, 1);
+          else if (item.recurrence === 'weekly') nextDate = addDaysIso(todayIso, 7);
+          else if (item.recurrence === 'biweekly') nextDate = addDaysIso(todayIso, 14);
+          else if (item.recurrence === 'monthly') nextDate = addMonthsIso(todayIso, 1);
+          else if (item.recurrence === 'custom_days') nextDate = addDaysIso(todayIso, item.customDaysCycle || 7);
+
+          const alreadyNext = calendarItems.some(x => x.title === item.title && x.date === nextDate && !x.done);
+          if (!alreadyNext) {
+            calendarItems.push({
+              ...item,
+              id: Date.now() + 5,
+              date: nextDate,
+              done: false
+            });
+            showToast(`Completato! Prossima occorrenza: ${formatReadableDate(nextDate)}`);
+          } else {
+            showToast('Attività completata');
+          }
+        } else {
+          showToast('Attività completata');
+        }
+      }
+      saveCalendarItems();
+    }
+
+    function postponeItemOneDay(id) {
+      const item = calendarItems.find(it => it.id === id);
+      if (!item) return;
+      const base = item.date || todayIso;
+      item.date = addDaysIso(base, 1);
+      saveCalendarItems();
+      showToast(`Spostato a ${formatReadableDate(item.date)}`);
+    }
+
+    function openEditDrawer(id) {
+      const item = calendarItems.find(it => it.id === id);
+      if (!item) return;
+      document.getElementById('itemDrawerTitle').textContent = 'Modifica Impegno';
+      document.getElementById('editItemId').value = item.id;
+      setDrawerItemType(item.type);
+      document.getElementById('itemTitleInput').value = item.title;
+      document.getElementById('itemDateInput').value = item.date || '';
+      document.getElementById('itemStartTime').value = item.startTime || '10:00';
+      document.getElementById('itemEndTime').value = item.endTime || '11:00';
+      document.getElementById('itemContextInput').value = item.context || 'Lavoro & Progetti';
+      document.getElementById('itemRecurrenceInput').value = item.recurrence === 'custom_days' ? 'weekly' : (item.recurrence || 'none');
+      document.getElementById('itemNotesInput').value = item.notes || '';
+      document.getElementById('itemPriorityInput').checked = !!item.priority;
+      document.getElementById('deleteItemDrawerBtn').style.display = 'inline-flex';
+      document.getElementById('itemDrawerOverlay').classList.add('open');
+    }
+
+    // --- RENDERING ACCESSIBILE DELLE VISTE ---
+    function createAgendaCardElement(item) {
+      const row = document.createElement('article');
+      row.className = `agenda-item ${item.priority && !item.done ? 'is-priority' : ''} ${item.done ? 'is-done' : ''}`;
+
+      const left = document.createElement('div');
+      left.className = 'agenda-left';
+
+      if (item.type === 'task') {
+        const chk = document.createElement('button');
+        chk.type = 'button';
+        chk.className = `task-checkbox ${item.done ? 'checked' : ''}`;
+        chk.setAttribute('aria-label', item.done ? 'Segna come non completato' : 'Segna come completato');
+        chk.textContent = item.done ? '✓' : '';
+        chk.addEventListener('click', () => toggleItemDone(item.id));
+        left.appendChild(chk);
+      } else {
+        const timeBadge = document.createElement('span');
+        timeBadge.className = 'time-pill';
+        timeBadge.textContent = `${item.startTime || '09:00'}${item.endTime ? ' – ' + item.endTime : ''}`;
+        left.appendChild(timeBadge);
+      }
+
+      const info = document.createElement('div');
+      info.style.minWidth = '0';
+      info.style.flex = '1';
+
+      const titleEl = document.createElement('div');
+      titleEl.className = 'agenda-title';
+      titleEl.textContent = item.title;
+      info.appendChild(titleEl);
+
+      const meta = document.createElement('div');
+      meta.className = 'agenda-meta';
+      const badge = document.createElement('span');
+      badge.className = 'badge';
+      badge.textContent = item.context;
+      meta.appendChild(badge);
+
+      if (item.date) {
+        const dateSpan = document.createElement('span');
+        dateSpan.textContent = formatReadableDate(item.date);
+        meta.appendChild(dateSpan);
+      }
+      if (item.recurrence && item.recurrence !== 'none') {
+        const recSpan = document.createElement('span');
+        recSpan.textContent = '↻ Ricorrente';
+        meta.appendChild(recSpan);
+      }
+      if (item.notes) {
+        const noteSpan = document.createElement('span');
+        noteSpan.textContent = `• ${item.notes}`;
+        meta.appendChild(noteSpan);
+      }
+      info.appendChild(meta);
+      left.appendChild(info);
+
+      const actions = document.createElement('div');
+      actions.className = 'agenda-actions';
+
+      if (!item.done) {
+        const postBtn = document.createElement('button');
+        postBtn.type = 'button';
+        postBtn.className = 'btn btn-mini';
+        postBtn.textContent = '+1g';
+        postBtn.title = 'Rimanda a domani';
+        postBtn.addEventListener('click', () => postponeItemOneDay(item.id));
+        actions.appendChild(postBtn);
+      }
+
+      const editBtn = document.createElement('button');
+      editBtn.type = 'button';
+      editBtn.className = 'btn btn-mini';
+      editBtn.textContent = 'Modifica';
+      editBtn.addEventListener('click', () => openEditDrawer(item.id));
+      actions.appendChild(editBtn);
+
+      row.appendChild(left);
+      row.appendChild(actions);
+      return row;
+    }
+
+    function getFilteredItems() {
+      return calendarItems.filter(it => currentContextFilter === 'all' || it.context === currentContextFilter);
+    }
+
+    function renderCalendar() {
+      const container = document.getElementById('calendarViewContainer');
+      container.innerHTML = '';
+      const filtered = getFilteredItems();
+
+      const selDateObj = new Date(selectedDateIso + 'T12:00:00');
+      document.getElementById('currentDateLabel').textContent = selDateObj.toLocaleDateString('it-IT', {
+        weekday: 'short', day: 'numeric', month: 'long'
+      });
+
+      const openTodayCount = filtered.filter(i => i.date === todayIso && !i.done).length;
+      document.getElementById('calendarSummaryBadge').textContent = `${openTodayCount} attivi oggi`;
+
+      if (currentView === 'focus') {
+        const dayItems = filtered.filter(i => i.date === selectedDateIso);
+        const events = dayItems.filter(i => i.type === 'event').sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''));
+        const tasks = dayItems.filter(i => i.type === 'task').sort((a, b) => Number(a.done) - Number(b.done));
+        const overdue = selectedDateIso === todayIso
+          ? filtered.filter(i => i.date && i.date < todayIso && !i.done)
+          : [];
+
+        if (overdue.length > 0) {
+          const ovHeader = document.createElement('h2');
+          ovHeader.style.color = 'var(--color-primary)';
+          ovHeader.textContent = `Da recuperare (${overdue.length})`;
+          container.appendChild(ovHeader);
+          overdue.forEach(item => container.appendChild(createAgendaCardElement(item)));
+        }
+
+        const evHeader = document.createElement('h2');
+        evHeader.style.marginTop = '12px';
+        evHeader.textContent = `Appuntamenti (${events.length})`;
+        container.appendChild(evHeader);
+
+        if (events.length === 0) {
+          const emptyEv = document.createElement('p');
+          emptyEv.style.marginBottom = '16px';
+          emptyEv.textContent = 'Nessun appuntamento orario in questa giornata.';
+          container.appendChild(emptyEv);
+        } else {
+          events.forEach(item => container.appendChild(createAgendaCardElement(item)));
+        }
+
+        const tkHeader = document.createElement('h2');
+        tkHeader.style.marginTop = '16px';
+        tkHeader.textContent = `Task & Azioni (${tasks.length})`;
+        container.appendChild(tkHeader);
+
+        if (tasks.length === 0) {
+          const emptyTk = document.createElement('p');
+          emptyTk.textContent = 'Nessun task pianificato per questa data.';
+          container.appendChild(emptyTk);
+        } else {
+          tasks.forEach(item => container.appendChild(createAgendaCardElement(item)));
+        }
+      } else if (currentView === 'week') {
+        for (let offset = 0; offset < 7; offset++) {
+          const dayIso = addDaysIso(selectedDateIso, offset);
+          const dayItems = filtered.filter(i => i.date === dayIso)
+            .sort((a, b) => (a.startTime || '99:99').localeCompare(b.startTime || '99:99'));
+
+          const group = document.createElement('div');
+          group.className = 'week-day-group';
+
+          const header = document.createElement('div');
+          header.className = 'week-day-header';
+          const dLabel = new Date(dayIso + 'T12:00:00').toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'short' });
+          header.innerHTML = `<span>${dLabel.charAt(0).toUpperCase() + dLabel.slice(1)}</span><span class="badge">${dayItems.length}</span>`;
+          group.appendChild(header);
+
+          if (dayItems.length === 0) {
+            const p = document.createElement('p');
+            p.style.fontSize = '9pt';
+            p.style.color = 'var(--color-muted)';
+            p.textContent = 'Giornata libera';
+            group.appendChild(p);
+          } else {
+            dayItems.forEach(item => group.appendChild(createAgendaCardElement(item)));
+          }
+          container.appendChild(group);
+        }
+      } else if (currentView === 'month') {
+        const year = selDateObj.getFullYear();
+        const month = selDateObj.getMonth();
+        const firstDay = new Date(year, month, 1);
+        const startOffset = (firstDay.getDay() + 6) % 7; // Lunedì = 0
+        const gridStart = new Date(year, month, 1 - startOffset);
+
+        const grid = document.createElement('div');
+        grid.className = 'month-grid';
+
+        ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'].forEach(wd => {
+          const hd = document.createElement('div');
+          hd.className = 'month-weekday';
+          hd.textContent = wd;
+          grid.appendChild(hd);
+        });
+
+        for (let i = 0; i < 35; i++) {
+          const cellDate = new Date(gridStart);
+          cellDate.setDate(gridStart.getDate() + i);
+          const cellIso = toIsoDate(cellDate);
+          const cellItems = filtered.filter(it => it.date === cellIso);
+
+          const cellBtn = document.createElement('button');
+          cellBtn.type = 'button';
+          cellBtn.className = `month-cell ${cellIso === selectedDateIso ? 'is-selected' : ''} ${cellDate.getMonth() !== month ? 'is-outside' : ''}`;
+
+          const num = document.createElement('span');
+          num.className = 'month-day-num';
+          num.textContent = cellDate.getDate();
+          cellBtn.appendChild(num);
+
+          const dots = document.createElement('div');
+          dots.className = 'month-dots';
+          cellItems.slice(0, 6).forEach(it => {
+            const dot = document.createElement('span');
+            dot.className = `event-dot ${it.priority ? 'priority' : (it.type === 'task' ? 'accent' : '')}`;
+            dots.appendChild(dot);
+          });
+          cellBtn.appendChild(dots);
+
+          cellBtn.addEventListener('click', () => {
+            selectedDateIso = cellIso;
+            currentView = 'focus';
+            document.querySelectorAll('[data-cal-view]').forEach(b => b.classList.toggle('active', b.getAttribute('data-cal-view') === 'focus'));
+            renderCalendar();
+          });
+
+          grid.appendChild(cellBtn);
+        }
+        container.appendChild(grid);
+      } else if (currentView === 'backlog') {
+        const unscheduled = filtered.filter(i => !i.date);
+        const h = document.createElement('h2');
+        h.textContent = `Idee & Task Da Pianificare (${unscheduled.length})`;
+        container.appendChild(h);
+        if (unscheduled.length === 0) {
+          const p = document.createElement('p');
+          p.textContent = 'Nessun task senza data.';
+          container.appendChild(p);
+        } else {
+          unscheduled.forEach(item => container.appendChild(createAgendaCardElement(item)));
+        }
+      }
+    }
+
+    // --- QUICK ADD PARSER INTELLIGENTE ---
+    function parseQuickAddText(rawText) {
+      let text = rawText.trim();
+      let targetDate = selectedDateIso;
+
+      if (/\bdomani\b/i.test(text)) {
+        targetDate = addDaysIso(todayIso, 1);
+        text = text.replace(/\bdomani\b/i, '').trim();
+      } else if (/\boggi\b/i.test(text)) {
+        targetDate = todayIso;
+        text = text.replace(/\boggi\b/i, '').trim();
+      }
+
+      const timeMatch = text.match(/\b([01]?\d|2[0-3])[:.]([0-5]\d)\b/);
+      if (timeMatch) {
+        const hh = String(timeMatch[1]).padStart(2, '0');
+        const mm = timeMatch[2];
+        const startTime = `${hh}:${mm}`;
+        const endHour = String((parseInt(hh, 10) + 1) % 24).padStart(2, '0');
+        const endTime = `${endHour}:${mm}`;
+        const cleanTitle = text.replace(timeMatch[0], '').replace(/\s+/g, ' ').trim() || 'Appuntamento';
+        return {
+          type: 'event',
+          title: cleanTitle,
+          date: targetDate,
+          startTime,
+          endTime
+        };
+      }
+
+      return {
+        type: 'task',
+        title: text,
+        date: targetDate,
+        startTime: '',
+        endTime: ''
+      };
+    }
+
+    // --- GESTIONE DRAWER DETTAGLI ---
+    function setDrawerItemType(type) {
+      document.getElementById('itemTypeInput').value = type;
+      document.getElementById('typeBtnTask').classList.toggle('active', type === 'task');
+      document.getElementById('typeBtnEvent').classList.toggle('active', type === 'event');
+      document.getElementById('eventTimeFields').style.display = type === 'event' ? 'block' : 'none';
+    }
+
+    // --- EMAIL & ESPORTAZIONE .ICS ---
+    function buildAgendaEmailSummary(scope) {
+      const targetDates = scope === 'selected'
+        ? [selectedDateIso]
+        : Array.from({ length: 7 }, (_, i) => addDaysIso(todayIso, i));
+
+      const lines = ['RIEPILOGO AGENDA — WORKSPACE HUB', ''];
+      targetDates.forEach(dIso => {
+        const items = calendarItems.filter(it => it.date === dIso && !it.done);
+        if (items.length > 0) {
+          lines.push(`• ${formatReadableDate(dIso).toUpperCase()}:`);
+          items.forEach(it => {
+            const prefix = it.type === 'event' ? `[${it.startTime}]` : '[Task]';
+            lines.push(`  - ${prefix} ${it.title} (${it.context})`);
+          });
+          lines.push('');
+        }
+      });
+
+      if (lines.length <= 2) {
+        lines.push('Nessun impegno aperto nel periodo selezionato.');
+      }
+      return lines.join('\n');
+    }
+
+    function exportCalendarToIcs() {
+      const activeItems = calendarItems.filter(it => !it.done && it.date);
+      if (activeItems.length === 0) {
+        showToast('Nessun impegno attivo da esportare');
+        return;
+      }
+
+      const icsLines = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//Workspace Hub//Calendario Impegni//IT'
+      ];
+
+      activeItems.forEach(it => {
+        const compactDate = it.date.replace(/-/g, '');
+        icsLines.push('BEGIN:VEVENT');
+        icsLines.push(`UID:wshub-${it.id}@sonomonade.org`);
+        icsLines.push(`SUMMARY:${it.title.replace(/,/g, '\\,')}`);
+        if (it.type === 'event' && it.startTime) {
+          const st = it.startTime.replace(':', '') + '00';
+          const en = (it.endTime || it.startTime).replace(':', '') + '00';
+          icsLines.push(`DTSTART:${compactDate}T${st}`);
+          icsLines.push(`DTEND:${compactDate}T${en}`);
+        } else {
+          icsLines.push(`DTSTART;VALUE=DATE:${compactDate}`);
+        }
+        if (it.notes) icsLines.push(`DESCRIPTION:${it.notes.replace(/\n/g, ' ')}`);
+        icsLines.push('END:VEVENT');
+      });
+
+      icsLines.push('END:VCALENDAR');
+      const blob = new Blob([icsLines.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `agenda-workspace-${selectedDateIso}.ics`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('File .ics scaricato (apribile su Calendario Apple/Google)');
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY_CALENDARIO);
+        calendarItems = saved ? JSON.parse(saved) : JSON.parse(JSON.stringify(defaultCalendarItems));
+      } catch (e) {
+        calendarItems = JSON.parse(JSON.stringify(defaultCalendarItems));
+      }
+
+      // Auto-sincronizza all'apertura senza duplicati
+      syncWithWorkspaceModules(true);
+
+      document.getElementById('quickAddForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const raw = document.getElementById('quickAddInput').value;
+        const ctx = document.getElementById('quickAddContext').value;
+        const parsed = parseQuickAddText(raw);
+
+        calendarItems.unshift({
+          id: Date.now(),
+          type: parsed.type,
+          title: parsed.title,
+          date: parsed.date,
+          startTime: parsed.startTime,
+          endTime: parsed.endTime,
+          context: ctx,
+          recurrence: 'none',
+          notes: '',
+          priority: false,
+          done: false
+        });
+
+        document.getElementById('quickAddInput').value = '';
+        saveCalendarItems();
+        showToast(parsed.type === 'event'
+          ? `Appuntamento aggiunto alle ${parsed.startTime}`
+          : 'Task aggiunto al calendario');
+      });
+
+      document.querySelectorAll('[data-cal-view]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          currentView = btn.getAttribute('data-cal-view');
+          document.querySelectorAll('[data-cal-view]').forEach(b => b.classList.toggle('active', b.getAttribute('data-cal-view') === currentView));
+          renderCalendar();
+        });
+      });
+
+      document.querySelectorAll('[data-ctx-filter]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          currentContextFilter = btn.getAttribute('data-ctx-filter');
+          document.querySelectorAll('[data-ctx-filter]').forEach(b => b.classList.toggle('active', b.getAttribute('data-ctx-filter') === currentContextFilter));
+          renderCalendar();
+        });
+      });
+
+      document.getElementById('prevDateBtn').addEventListener('click', () => {
+        const step = currentView === 'month' ? -30 : (currentView === 'week' ? -7 : -1);
+        selectedDateIso = addDaysIso(selectedDateIso, step);
+        renderCalendar();
+      });
+
+      document.getElementById('nextDateBtn').addEventListener('click', () => {
+        const step = currentView === 'month' ? 30 : (currentView === 'week' ? 7 : 1);
+        selectedDateIso = addDaysIso(selectedDateIso, step);
+        renderCalendar();
+      });
+
+      document.getElementById('todayDateBtn').addEventListener('click', () => {
+        selectedDateIso = todayIso;
+        renderCalendar();
+      });
+
+      document.getElementById('syncHubBtn').addEventListener('click', () => syncWithWorkspaceModules(false));
+      document.getElementById('exportIcsBtn').addEventListener('click', exportCalendarToIcs);
+
+      // Drawer Nuovo/Modifica Impegno
+      const itemDrawer = document.getElementById('itemDrawerOverlay');
+      document.getElementById('openNewItemDrawerBtn').addEventListener('click', () => {
+        document.getElementById('itemDrawerTitle').textContent = 'Nuovo Impegno';
+        document.getElementById('editItemId').value = '';
+        document.getElementById('detailedItemForm').reset();
+        setDrawerItemType('task');
+        document.getElementById('itemDateInput').value = selectedDateIso;
+        document.getElementById('deleteItemDrawerBtn').style.display = 'none';
+        itemDrawer.classList.add('open');
+      });
+
+      document.getElementById('closeItemDrawerBtn').addEventListener('click', () => itemDrawer.classList.remove('open'));
+      itemDrawer.addEventListener('click', (e) => { if (e.target === itemDrawer) itemDrawer.classList.remove('open'); });
+
+      document.getElementById('typeBtnTask').addEventListener('click', () => setDrawerItemType('task'));
+      document.getElementById('typeBtnEvent').addEventListener('click', () => setDrawerItemType('event'));
+
+      document.getElementById('detailedItemForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const editId = document.getElementById('editItemId').value;
+        const type = document.getElementById('itemTypeInput').value;
+        const payload = {
+          type,
+          title: document.getElementById('itemTitleInput').value.trim(),
+          date: document.getElementById('itemDateInput').value || '',
+          startTime: type === 'event' ? document.getElementById('itemStartTime').value : '',
+          endTime: type === 'event' ? document.getElementById('itemEndTime').value : '',
+          context: document.getElementById('itemContextInput').value,
+          recurrence: document.getElementById('itemRecurrenceInput').value,
+          notes: document.getElementById('itemNotesInput').value.trim(),
+          priority: document.getElementById('itemPriorityInput').checked
+        };
+
+        if (editId) {
+          const idx = calendarItems.findIndex(x => String(x.id) === String(editId));
+          if (idx !== -1) calendarItems[idx] = { ...calendarItems[idx], ...payload };
+          showToast('Impegno aggiornato');
+        } else {
+          calendarItems.unshift({ id: Date.now(), done: false, ...payload });
+          showToast('Impegno salvato');
+        }
+
+        itemDrawer.classList.remove('open');
+        saveCalendarItems();
+      });
+
+      document.getElementById('deleteItemDrawerBtn').addEventListener('click', () => {
+        const editId = document.getElementById('editItemId').value;
+        if (!editId) return;
+        calendarItems = calendarItems.filter(x => String(x.id) !== String(editId));
+        itemDrawer.classList.remove('open');
+        saveCalendarItems();
+        showToast('Impegno eliminato');
+      });
+
+      // Drawer Invio Email
+      const emailDrawer = document.getElementById('emailDrawerOverlay');
+      document.getElementById('openEmailModalBtn').addEventListener('click', () => {
+        try {
+          const acc = JSON.parse(localStorage.getItem(AUTH_KEY) || '{}');
+          if (acc.email && !document.getElementById('emailRecipientInput').value) {
+            document.getElementById('emailRecipientInput').value = acc.email;
+          }
+          const ejs = JSON.parse(localStorage.getItem(EMAILJS_CFG_KEY) || '{}');
+          document.getElementById('emailJsStatusTag').textContent = (ejs.serviceId && ejs.templateId && ejs.publicKey)
+            ? 'Stato: EmailJS collegato e pronto'
+            : 'Nota: Configura EmailJS nella Dashboard per inviare email reali';
+        } catch (e) {}
+
+        document.getElementById('emailPreviewText').value = buildAgendaEmailSummary(document.getElementById('emailScopeSelect').value);
+        emailDrawer.classList.add('open');
+      });
+
+      document.getElementById('closeEmailDrawerBtn').addEventListener('click', () => emailDrawer.classList.remove('open'));
+      emailDrawer.addEventListener('click', (e) => { if (e.target === emailDrawer) emailDrawer.classList.remove('open'); });
+
+      document.getElementById('emailScopeSelect').addEventListener('change', (e) => {
+        document.getElementById('emailPreviewText').value = buildAgendaEmailSummary(e.target.value);
+      });
+
+      document.getElementById('sendAgendaEmailForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const toEmail = document.getElementById('emailRecipientInput').value.trim();
+        const bodyText = document.getElementById('emailPreviewText').value;
+        const ejsCfg = JSON.parse(localStorage.getItem(EMAILJS_CFG_KEY) || '{}');
+
+        if (!ejsCfg.serviceId || !ejsCfg.templateId || !ejsCfg.publicKey || !window.emailjs) {
+          showToast('Configura prima le chiavi EmailJS in Profilo & Sync');
+          return;
+        }
+
+        try {
+          showToast('Invio email in corso...');
+          emailjs.init({ publicKey: ejsCfg.publicKey });
+          await emailjs.send(ejsCfg.serviceId, ejsCfg.templateId, {
+            to_name: 'Workspace Hub',
+            to_email: toEmail,
+            otp_code: bodyText,
+            app_name: 'Calendario Impegni'
+          });
+          emailDrawer.classList.remove('open');
+          showToast(`Riepilogo inviato a ${toEmail}!`);
+        } catch (err) {
+          showToast('Errore invio EmailJS: verifica chiavi o template');
+        }
+      });
+
+      renderCalendar();
+    });
+  </script>
+</body>
+</html>
