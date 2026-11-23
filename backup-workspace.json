@@ -1,5 +1,9 @@
 {
-  "exportedAt": "2026-11-22T11:25:22.288Z",
+  "exportedAt": "2026-11-23T08:48:06.919Z",
+  "accountAuth": {
+    "owner": "SonoMonade",
+    "hash": "7fc8fae708bd3ee0f49dc5fe036179e096285016c9ad6262373eddb0b61ac5f4"
+  },
   "dashboard": {
     "version": "2.1.0",
     "sections": [
