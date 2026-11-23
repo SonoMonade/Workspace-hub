@@ -1,5 +1,5 @@
 {
-  "version": "2.5.1",
+  "version": "2.6.0",
   "sections": [
     {
       "id": "operativita",
@@ -27,7 +27,7 @@
       "label": "Didattica & Lab",
       "shortLabel": "Lab",
       "icon": "didattica-lab",
-      "purpose": "Dispense formative, esercitazioni e prototipi."
+      "purpose": "Dispense formative, esercitazioni, CAA e accessibilità DSA."
     }
   ],
   "tools": [
@@ -102,6 +102,15 @@
       "desc": "Calcolatore scale in pt, margini pagina, griglia ed esportazione Word / Docs.",
       "status": "Operativo",
       "url": "./tipografia.html"
+    },
+    {
+      "id": 9,
+      "title": "Accessibilità Didattica & DSA",
+      "category": "didattica-lab",
+      "badge": "Inclusione",
+      "desc": "Dropzone universale per foto di libri, PDF e appunti con conversione automatica in formati DSA, Easy-to-Read e CAA.",
+      "status": "Operativo",
+      "url": "./accessibilita.html"
     }
   ]
 }

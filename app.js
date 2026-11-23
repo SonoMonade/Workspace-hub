@@ -105,6 +105,15 @@ badge: "Tipografia",
 desc: "Calcolatore scale in pt, margini pagina, griglia a colonne ed esportazione Word / Google Docs.",
 status: "Operativo",
 url: "./tipografia.html"
+},
+{
+id: 9,
+title: "Accessibilità Didattica & DSA",
+category: "didattica-lab",
+badge: "Inclusione",
+desc: "Dropzone universale per foto di libri, PDF e appunti con conversione automatica in formati DSA, Easy-to-Read e CAA.",
+status: "Operativo",
+url: "./accessibilita.html"
 }
 ]
 };

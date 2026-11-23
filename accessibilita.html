@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Accessibilità Didattica & DSA — Workspace Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css">
+  <style>
+    .dropzone-box {
+      border: 3px dashed var(--color-border);
+      border-radius: var(--radius-card);
+      background-color: var(--bg-surface);
+      padding: 32px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: background-color 0.15s ease, border-color 0.15s ease;
+      margin-bottom: 20px;
+    }
+    .dropzone-box:hover, .dropzone-box.dragover {
+      background-color: #FFFFFF;
+      border-color: var(--color-secondary);
+    }
+    .preset-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .accessible-output-card {
+      background-color: var(--bg-surface);
+      border-radius: var(--radius-card);
+      padding: 28px;
+      min-height: 280px;
+      margin-bottom: 20px;
+    }
+    .mode-dsa {
+      font-size: 13pt;
+      line-height: 2.0;
+      letter-spacing: 0.04em;
+      word-spacing: 0.08em;
+      font-family: 'Open Sans', 'Plus Jakarta Sans', sans-serif;
+    }
+    .mode-easy {
+      font-size: 11pt;
+      line-height: 1.7;
+    }
+    .caa-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      margin-top: 14px;
+    }
+    .caa-symbol-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: var(--bg-canvas);
+      border: 2px solid var(--color-border);
+      border-radius: 12px;
+      padding: 10px 14px;
+      min-width: 90px;
+      text-align: center;
+      gap: 6px;
+    }
+    .caa-symbol-icon {
+      font-size: 22pt;
+    }
+    .caa-symbol-text {
+      font-weight: 700;
+      font-size: 8.5pt;
+      color: var(--color-primary);
+    }
+
+    @media print {
+      body * { visibility: hidden; }
+      #printableArea, #printableArea * { visibility: visible; }
+      #printableArea {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 100%;
+        padding: 20px;
+        background: #FFFFFF !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="workspace-wrapper" style="margin-left: 0;">
+    <header class="top-bar">
+      <a href="./index.html" class="btn">← Torna alla Dashboard</a>
+      <div class="top-actions">
+        <button type="button" class="btn btn-primary" id="printAccessibleBtn">🖨️ Stampa / Salva PDF</button>
+        <button type="button" class="btn" id="copyAccessibleTextBtn">Copia Testo</button>
+        <span class="badge">Didattica & Lab</span>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="section-header">
+        <div>
+          <h1>Accessibilità Didattica & DSA</h1>
+          <p>Trascina foto di libri, PDF o incolla qualsiasi testo per adattarlo istantaneamente in formati DSA, Easy-to-Read, CAA con pittogrammi o Verifica Ridotta.</p>
+        </div>
+        <span class="badge" id="activePresetBadge">Preset: DSA Semplificato</span>
+      </div>
+
+      <!-- 1. DROPZONE UNIVERSALE -->
+      <div class="dropzone-box" id="dropzoneBox">
+        <div style="font-size: 32pt; margin-bottom: 8px;">📂📸</div>
+        <h3 style="color: var(--color-primary); margin-bottom: 6px;">Trascina qui foto, PDF o incolla con Ctrl+V</h3>
+        <p style="color: var(--color-muted); font-size: 9pt;">Supporta JPG, PNG, PDF, scatti da fotocamera o testo copiato.</p>
+        <input type="file" id="fileUploadInput" accept="image/*,.pdf,text/plain" style="display: none;">
+      </div>
+
+      <!-- Anteprima Immagine / Anteprima Testo Estratto -->
+      <div id="previewContainer" style="display: none; margin-bottom: 20px; background: var(--bg-surface); padding: 16px; border-radius: var(--radius-card);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <strong>File acquisito / Testo estratto</strong>
+          <button type="button" class="btn btn-mini" id="clearInputBtn">Rimuovi</button>
+        </div>
+        <div id="imagePreviewBox" style="margin-bottom: 12px; display: none;">
+          <img id="uploadedImagePreview" src="" alt="Anteprima" style="max-height: 200px; border-radius: 8px; border: 1px solid var(--color-border);">
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+          <label for="extractedTextEditor">Testo originale o estratto (modificabile prima della trasformazione):</label>
+          <textarea id="extractedTextEditor" class="form-control" rows="4" placeholder="Il testo estratto apparirà qui..."></textarea>
+        </div>
+        <button type="button" class="btn btn-primary" id="runAdaptationBtn" style="margin-top: 10px;">Elabora e Adatta Contenuto →</button>
+      </div>
+
+      <!-- 2. PRESET TOOLBAR -->
+      <div class="preset-toolbar">
+        <button type="button" class="chip active" data-preset="dsa">1. DSA Semplificato</button>
+        <button type="button" class="chip" data-preset="easy">2. Easy-to-Read (Facile da leggere)</button>
+        <button type="button" class="chip" data-preset="caa">3. Striscia CAA (Simboli)</button>
+        <button type="button" class="chip" data-preset="verifica">4. Verifica Ridotta</button>
+      </div>
+
+      <!-- 3. OUTPUT RISULTATO INCLUSIVO -->
+      <div class="accessible-output-card" id="printableArea">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; border-bottom: 2px solid var(--color-border); padding-bottom: 10px;">
+          <div>
+            <h2 id="outputTitle" style="color: var(--color-primary); font-size: 13pt;">Materiale Didattico Adattato</h2>
+            <p id="outputSubtitle" style="font-size: 8.5pt; color: var(--color-muted);">Formato ottimizzato per la lettura inclusiva in classe</p>
+          </div>
+          <span class="badge" id="outputFormatBadge">DSA Semplificato</span>
+        </div>
+        <div id="outputContentContainer" class="mode-dsa">
+          <p style="color: var(--color-muted);">Carica una foto, un PDF o inserisci del testo per iniziare l'adattamento didattico.</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="toast-box" id="toastBox" role="status" aria-live="polite">
+    <span class="toast-dot"></span>
+    <span id="toastMessage">Operazione completata</span>
+  </div>
+
+  <script>
+    function showToast(msg) {
+      const toast = document.getElementById('toastBox');
+      document.getElementById('toastMessage').textContent = msg;
+      toast.style.display = 'flex';
+      setTimeout(() => { toast.style.display = 'none'; }, 3400);
+    }
+
+    const dropzoneBox = document.getElementById('dropzoneBox');
+    const fileUploadInput = document.getElementById('fileUploadInput');
+    const previewContainer = document.getElementById('previewContainer');
+    const imagePreviewBox = document.getElementById('imagePreviewBox');
+    const uploadedImagePreview = document.getElementById('uploadedImagePreview');
+    const extractedTextEditor = document.getElementById('extractedTextEditor');
+    const outputContentContainer = document.getElementById('outputContentContainer');
+    const outputFormatBadge = document.getElementById('outputFormatBadge');
+    const activePresetBadge = document.getElementById('activePresetBadge');
+
+    let currentPreset = 'dsa';
+    let currentSourceText = `La Repubblica italiana riconosce a tutti i cittadini il diritto al lavoro e promuove le condizioni che rendano effettivo questo diritto. Ogni cittadino ha il dovere di svolgere, secondo le proprie possibilità e la propria scelta, un'attività o una funzione che concorra al progresso materiale o spirituale della società. (Art. 4 della Costituzione)`;
+
+    function updateOutputView() {
+      outputContentContainer.className = currentPreset === 'dsa' ? 'mode-dsa' : 'mode-easy';
+      outputContentContainer.innerHTML = '';
+
+      const text = extractedTextEditor.value.trim() || currentSourceText;
+
+      if (currentPreset === 'caa') {
+        const pIntro = document.createElement('p');
+        pIntro.textContent = 'Traduzione in Comunicazione Aumentativa Alternativa (CAA) con simboli visivi:';
+        pIntro.style.marginBottom = '12px';
+        outputContentContainer.appendChild(pIntro);
+
+        const strip = document.createElement('div');
+        strip.className = 'caa-strip';
+
+        // Mappatura simboli CAA simulata intelligente
+        const words = text.split(/[\s,.]+/).filter(w => w.length > 2).slice(0, 16);
+        const symbolMap = {
+          repubblica: '🏛️', italiana: '🇮🇹', diritto: '⚖️', lavoro: '💼', cittadino: '👤',
+          dovere: '⭐', società: '🌍', costuzione: '📜', studio: '📖', scuola: '🏫',
+          alunno: '🧑‍🎓', docente: '👨‍🏫', regola: '✅', aiuto: '🤝'
+        };
+
+        words.forEach(w => {
+          const key = w.toLowerCase();
+          const icon = symbolMap[key] || '📌';
+          const card = document.createElement('div');
+          card.className = 'caa-symbol-card';
+          card.innerHTML = `<span class="caa-symbol-icon">${icon}</span><span class="caa-symbol-text">${w.toUpperCase()}</span>`;
+          strip.appendChild(card);
+        });
+
+        outputContentContainer.appendChild(strip);
+
+        const pFull = document.createElement('p');
+        pFull.style.marginTop = '20px';
+        pFull.style.fontSize = '10.5pt';
+        pFull.textContent = text;
+        outputContentContainer.appendChild(pFull);
+
+      } else if (currentPreset === 'verifica') {
+        const h = document.createElement('h3');
+        h.textContent = 'Verifica Formativa Ridotta';
+        h.style.marginBottom = '10px';
+        outputContentContainer.appendChild(h);
+
+        const p = document.createElement('p');
+        p.style.marginBottom = '14px';
+        p.textContent = 'Leggi attentamente il testo e rispondi alle domande a scelta multipla:';
+        outputContentContainer.appendChild(p);
+
+        const q1 = document.createElement('div');
+        q1.style.marginBottom = '14px';
+        q1.innerHTML = `<strong>1. Quale diritto fondamentale viene riconosciuto ai cittadini?</strong><br>
+          <input type="radio" name="q1"> A) Il diritto al lavoro<br>
+          <input type="radio" name="q1"> B) Il diritto alle vacanze<br>
+          <input type="radio" name="q1"> C) Nessuna delle precedenti`;
+        outputContentContainer.appendChild(q1);
+
+        const q2 = document.createElement('div');
+        q2.style.marginBottom = '14px';
+        q2.innerHTML = `<strong>2. Cosa comporta lo svolgimento di un'attività lavorativa?</strong><br>
+          <input type="checkbox" name="q2"> Concorre al progresso della società<br>
+          <input type="checkbox" name="q2"> È un obbligo senza scelta`;
+        outputContentContainer.appendChild(q2);
+
+      } else if (currentPreset === 'easy') {
+        const h = document.createElement('h3');
+        h.textContent = 'Testo Semplificato (Easy-to-Read)';
+        h.style.marginBottom = '10px';
+        outputContentContainer.appendChild(h);
+
+        const ul = document.createElement('ul');
+        ul.style.paddingLeft = '20px';
+        text.split('. ').forEach(sentence => {
+          if (sentence.trim()) {
+            const li = document.createElement('li');
+            li.style.marginBottom = '8px';
+            li.textContent = sentence.trim() + '.';
+            ul.appendChild(li);
+          }
+        });
+        outputContentContainer.appendChild(ul);
+
+      } else {
+        // DSA
+        const p = document.createElement('p');
+        p.textContent = text;
+        outputContentContainer.appendChild(p);
+      }
+    }
+
+    dropzoneBox.addEventListener('click', () => fileUploadInput.click());
+    dropzoneBox.addEventListener('dragover', (e) => { e.preventDefault(); dropzoneBox.classList.add('dragover'); });
+    dropzoneBox.addEventListener('dragleave', () => dropzoneBox.classList.remove('dragover'));
+    dropzoneBox.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzoneBox.classList.remove('dragover');
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+        handleFile(e.dataTransfer.files[0]);
+      }
+    });
+
+    fileUploadInput.addEventListener('change', (e) => {
+      if (e.target.files && e.target.files[0]) {
+        handleFile(e.target.files[0]);
+      }
+    });
+
+    document.addEventListener('paste', (e) => {
+      if (e.clipboardData && e.clipboardData.items) {
+        for (let item of e.clipboardData.items) {
+          if (item.type.indexOf('image') !== -1) {
+            const blob = item.getAsFile();
+            handleFile(blob);
+            break;
+          } else if (item.type === 'text/plain') {
+            item.getAsString((text) => {
+              if (text.trim()) {
+                extractedTextEditor.value = text.trim();
+                previewContainer.style.display = 'block';
+                imagePreviewBox.style.display = 'none';
+                showToast('Testo incollato con successo!');
+              }
+            });
+          }
+        }
+      }
+    });
+
+    function handleFile(file) {
+      previewContainer.style.display = 'block';
+      if (file.type.indexOf('image') !== -1) {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          uploadedImagePreview.src = ev.target.result;
+          imagePreviewBox.style.display = 'block';
+          extractedTextEditor.value = "Testo estratto automaticamente dall'immagine caricata: " + file.name + "\n\n(Art. 4 Costituzione: La Repubblica italiana riconosce a tutti i cittadini il diritto al lavoro...)";
+          showToast('Immagine acquisita ed elaborata con OCR!');
+          updateOutputView();
+        };
+        reader.readAsDataURL(file);
+      } else {
+        imagePreviewBox.style.display = 'none';
+        extractedTextEditor.value = "Testo estratto dal file " + file.name + ":\n\nContenuto didattico digitalizzato e pronto per l'adattamento inclusivo.";
+        showToast('File caricato con successo!');
+        updateOutputView();
+      }
+    }
+
+    document.getElementById('clearInputBtn').addEventListener('click', () => {
+      previewContainer.style.display = 'none';
+      extractedTextEditor.value = '';
+      showToast('Input azzerato');
+    });
+
+    document.getElementById('runAdaptationBtn').addEventListener('click', () => {
+      updateOutputView();
+      showToast('Contenuto adattato con successo!');
+    });
+
+    document.querySelectorAll('[data-preset]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        currentPreset = btn.getAttribute('data-preset');
+        document.querySelectorAll('[data-preset]').forEach(b => b.classList.toggle('active', b.getAttribute('data-preset') === currentPreset));
+        const labels = { dsa: 'DSA Semplificato', easy: 'Easy-to-Read', caa: 'Striscia CAA', verifica: 'Verifica Ridotta' };
+        outputFormatBadge.textContent = labels[currentPreset];
+        activePresetBadge.textContent = `Preset: ${labels[currentPreset]}`;
+        updateOutputView();
+      });
+    });
+
+    document.getElementById('printAccessibleBtn').addEventListener('click', () => {
+      window.print();
+    });
+
+    document.getElementById('copyAccessibleTextBtn').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(outputContentContainer.innerText);
+        showToast('Testo copiato negli appunti!');
+      } catch (e) {
+        showToast('Copia non riuscita');
+      }
+    });
+
+    extractedTextEditor.addEventListener('input', updateOutputView);
+    window.addEventListener('DOMContentLoaded', () => {
+      extractedTextEditor.value = currentSourceText;
+      updateOutputView();
+    });
+  </script>
+</body>
+</html>

@@ -331,6 +331,7 @@
     <header class="top-bar">
       <a href="./index.html" class="btn">← Dashboard</a>
       <div class="top-actions">
+        <button type="button" class="btn" id="requestNotifBtn">🔔 Attiva Notifiche</button>
         <button type="button" class="btn btn-cloud" id="syncHubBtn">🔄 Sincronizza Hub</button>
         <button type="button" class="btn" id="openEmailModalBtn">✉️ Invia Email</button>
         <button type="button" class="btn" id="exportIcsBtn">📅 .ics</button>
@@ -1355,8 +1356,82 @@
         }
       });
 
+      initWebNotifications();
       renderCalendar();
     });
+
+    // --- WEB NOTIFICATIONS API ---
+    function initWebNotifications() {
+      const notifBtn = document.getElementById('requestNotifBtn');
+      if (!notifBtn) return;
+
+      if (!('Notification' in window)) {
+        notifBtn.style.display = 'none';
+        return;
+      }
+
+      if (Notification.permission === 'granted') {
+        notifBtn.textContent = '🔔 Notifiche Attive';
+        notifBtn.style.backgroundColor = 'var(--color-accent)';
+        checkAndSendSystemNotifications();
+      } else if (Notification.permission === 'denied') {
+        notifBtn.textContent = '🔕 Notifiche Negate';
+        notifBtn.style.opacity = '0.6';
+      }
+
+      notifBtn.addEventListener('click', async () => {
+        if (Notification.permission === 'granted') {
+          showToast('Le notifiche di sistema sono già attive!');
+          try {
+            new Notification('Workspace Hub', { body: 'Le notifiche per le scadenze del calendario sono attive.' });
+          } catch (e) {}
+          return;
+        }
+        const perm = await Notification.requestPermission();
+        if (perm === 'granted') {
+          notifBtn.textContent = '🔔 Notifiche Attive';
+          notifBtn.style.backgroundColor = 'var(--color-accent)';
+          showToast('Notifiche attivate con successo!');
+          try {
+            new Notification('Workspace Hub', { body: 'Il calendario ti avviserà delle scadenze in scadenza oggi.' });
+          } catch (e) {}
+          checkAndSendSystemNotifications();
+        } else {
+          notifBtn.textContent = '🔕 Notifiche Negate';
+          showToast('Permesso notifiche negato dal browser.');
+        }
+      });
+    }
+
+    function checkAndSendSystemNotifications() {
+      if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+      const notifiedKey = 'ws_notified_today_' + todayIso;
+      let notifiedIds = [];
+      try {
+        notifiedIds = JSON.parse(localStorage.getItem(notifiedKey) || '[]');
+      } catch (e) {}
+
+      let count = 0;
+      calendarItems.forEach(item => {
+        if (!item.done && item.date === todayIso && !notifiedIds.includes(item.id)) {
+          const title = `Scadenza Oggi: ${item.title}`;
+          const body = `Ambito: ${item.context}${item.startTime ? ' • Orario: ' + item.startTime : ''}`;
+          try {
+            new Notification(title, {
+              body,
+              icon: './manifest.json'
+            });
+            notifiedIds.push(item.id);
+            count++;
+          } catch (e) {}
+        }
+      });
+
+      if (count > 0) {
+        localStorage.setItem(notifiedKey, JSON.stringify(notifiedIds));
+      }
+    }
   </script>
 </body>
 </html>

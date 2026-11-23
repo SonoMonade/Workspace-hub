@@ -132,24 +132,34 @@
 
       <p class="auth-error" id="authErrorMsg"></p>
 
-      <!-- VISTA 1: BENVENUTO IMMEDIATO (ZERO ATTRITO) -->
+      <!-- VISTA 1: BENVENUTO E ISCRIZIONE ISTANTANEA -->
       <div id="welcomeChoiceBox">
-        <p style="margin-bottom: 14px;">Scegli come vuoi iniziare: puoi entrare subito in locale oppure ripristinare i tuoi dati dal Cloud.</p>
-        <div class="welcome-actions">
-          <button type="button" class="btn btn-primary" id="enterGuestImmediateBtn" style="width: 100%; min-height: 48px;">
-            <span>Entra Subito nel Workspace →</span>
+        <p style="margin-bottom: 12px; font-weight: 700; color: var(--color-primary); font-size: 11pt;">Crea il tuo Workspace Personale</p>
+        <p style="margin-bottom: 14px; font-size: 9pt;">Inserisci il tuo nome e inizia subito a gestire il tuo hub personale in totale semplicità:</p>
+        <form id="quickSignupForm" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px;">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="quickSignName" style="font-size: 8.5pt;">Il tuo Nome</label>
+            <input type="text" id="quickSignName" class="form-control" required placeholder="Es. Marco Rossi">
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="quickSignEmail" style="font-size: 8.5pt;">La tua Email</label>
+            <input type="email" id="quickSignEmail" class="form-control" required placeholder="marco@esempio.it">
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; min-height: 46px; margin-top: 4px;">
+            <span>Crea il mio Workspace e Inizia →</span>
           </button>
+        </form>
 
-          <div class="welcome-divider">OPPURE RIPRISTINA I TUOI DATI</div>
-
+        <div class="welcome-divider">OPPURE RIPRISTINA / ACCEDI</div>
+        <div class="welcome-actions">
+          <button type="button" class="btn" id="welcomeImportFileBtn" style="width: 100%;">
+            📂 Carica File di Backup (.json)
+          </button>
           <button type="button" class="btn btn-cloud" id="welcomeOpenCloudBtn" style="width: 100%;">
             ☁️ Ripristina da Cloud GitHub
           </button>
-          <button type="button" class="btn" id="welcomeImportFileBtn" style="width: 100%;">
-            📂 Apri da File Backup (.json)
-          </button>
-          <button type="button" class="btn" id="welcomeShowLoginBtn" style="width: 100%;">
-            🔒 Entra / Proteggi con Password
+          <button type="button" class="btn" id="enterGuestImmediateBtn" style="width: 100%;">
+            Entra Subito come Ospite
           </button>
         </div>
       </div>
@@ -249,6 +259,7 @@
       </div>
       <div class="top-actions">
         <input type="file" id="importJsonInput" accept=".json" style="display: none;">
+        <button type="button" class="btn" id="openUserProfileBtn">👤 Sezione Utente</button>
         <button type="button" class="btn btn-cloud" id="openCloudDrawerBtn">☁️ Profilo & Sync</button>
         <button type="button" class="btn btn-primary" id="openDrawerBtn"><span>+ Nuovo</span></button>
       </div>
@@ -325,6 +336,76 @@
     </div>
   </div>
 
+  <!-- Drawer Dedicato: Sezione Utente & Iscrizioni -->
+  <div class="drawer-overlay" id="userProfileDrawer" role="dialog" aria-modal="true" aria-labelledby="userProfileTitle">
+    <div class="side-sheet" style="max-width: 520px;">
+      <div>
+        <div class="sheet-header">
+          <h2 id="userProfileTitle">👤 Sezione Utente & Iscrizioni</h2>
+          <button type="button" class="btn" id="closeUserProfileDrawerBtn">Chiudi</button>
+        </div>
+
+        <div style="background-color: var(--bg-canvas); padding: 16px; border-radius: var(--radius-card); margin-bottom: 18px;">
+          <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+            <div id="userAvatarBubble" style="width: 48px; height: 48px; border-radius: 50%; background-color: var(--color-primary); color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 14pt;">U</div>
+            <div>
+              <h3 id="displayUserName" style="font-size: 11pt; color: var(--color-primary);">Utente</h3>
+              <p id="displayUserEmail" style="font-size: 8.5pt; color: var(--color-muted);">email@esempio.it</p>
+            </div>
+          </div>
+          <div style="display: flex; gap: 12px; font-size: 8.5pt; color: var(--color-secondary); font-weight: 600;">
+            <span id="displayUserRole">Ruolo: Professionista</span>
+            <span>•</span>
+            <span id="displayUserToolsCount">0 Strumenti</span>
+          </div>
+        </div>
+
+        <h3 style="font-size: 10.5pt; color: var(--color-primary); margin-bottom: 8px;">Modifica Dati Personali</h3>
+        <form id="dedicatedProfileForm" style="margin-bottom: 20px;">
+          <div class="form-group">
+            <label for="dedProfileName">Nome e Cognome</label>
+            <input type="text" id="dedProfileName" class="form-control" required placeholder="Es. Mario Rossi">
+          </div>
+          <div class="form-group">
+            <label for="dedProfileEmail">Indirizzo Email</label>
+            <input type="email" id="dedProfileEmail" class="form-control" required placeholder="mario@esempio.it">
+          </div>
+          <div class="form-group">
+            <label for="dedProfileRole">Ruolo / Area Professionale</label>
+            <input type="text" id="dedProfileRole" class="form-control" placeholder="Es. Project Manager / Consulente / Studente">
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%;">Salva Modifiche Profilo</button>
+        </form>
+
+        <h3 style="font-size: 10.5pt; color: var(--color-primary); margin-bottom: 8px; padding-top: 14px; border-top: var(--border-width) solid var(--color-border);">📋 Gestione Iscrizioni & Abbonamenti</h3>
+        <p style="font-size: 8.5pt; color: var(--color-muted); margin-bottom: 10px;">Registra qui i tuoi abbonamenti attivi, corsi formativi o servizi ricorrenti:</p>
+        <div id="dedicatedSubsList" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px; max-height: 180px; overflow-y: auto;"></div>
+
+        <form id="dedicatedAddSubForm" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; background-color: var(--bg-canvas); padding: 12px; border-radius: var(--radius-card);">
+          <div class="form-group" style="margin-bottom: 0;">
+            <label for="dedSubTitle" style="font-size: 8pt;">Titolo Iscrizione / Servizio</label>
+            <input type="text" id="dedSubTitle" class="form-control" placeholder="Es. Corso AI Avanzato, Licenza Cloud..." required>
+          </div>
+          <div class="form-grid" style="margin-top: 0; margin-bottom: 0;">
+            <div class="form-group" style="margin-bottom: 0;">
+              <label for="dedSubDate" style="font-size: 8pt;">Data Scadenza / Rinnovo</label>
+              <input type="date" id="dedSubDate" class="form-control" required>
+            </div>
+            <div class="form-group" style="margin-bottom: 0;">
+              <label for="dedSubCost" style="font-size: 8pt;">Costo / Note</label>
+              <input type="text" id="dedSubCost" class="form-control" placeholder="Es. € 29.00 / mese">
+            </div>
+          </div>
+          <button type="submit" class="btn" style="width: 100%; margin-top: 4px;">+ Aggiungi Iscrizione</button>
+        </form>
+
+        <div style="display: flex; flex-direction: column; gap: 8px; padding-top: 14px; border-top: var(--border-width) solid var(--color-border);">
+          <button type="button" class="btn" id="dedExportBackupBtn" style="width: 100%;">↓ Esporta Backup Completo Workspace</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Drawer 2: Profilo, Cloud GitHub, Backup File & EmailJS -->
   <div class="drawer-overlay" id="cloudDrawerOverlay">
     <div class="side-sheet">
@@ -334,7 +415,32 @@
           <button type="button" class="btn" id="closeCloudDrawerBtn">Chiudi</button>
         </div>
 
-        <h3 style="font-size: 10.5pt; color: var(--color-primary); margin-bottom: 8px;">1. Backup Locale (.json)</h3>
+        <h3 style="font-size: 10.5pt; color: var(--color-primary); margin-bottom: 8px;">👤 Profilo Utente & Iscrizioni</h3>
+        <form id="userProfileForm" style="margin-bottom: 14px;">
+          <div class="form-group" style="margin-bottom: 8px;">
+            <label for="profileEditName" style="font-size: 8.5pt;">Nome Utente</label>
+            <input type="text" id="profileEditName" class="form-control" required placeholder="Tuo Nome">
+          </div>
+          <div class="form-group" style="margin-bottom: 8px;">
+            <label for="profileEditEmail" style="font-size: 8.5pt;">Email</label>
+            <input type="email" id="profileEditEmail" class="form-control" required placeholder="tua.email@esempio.it">
+          </div>
+          <div class="form-group" style="margin-bottom: 8px;">
+            <label for="profileEditRole" style="font-size: 8.5pt;">Ruolo / Profilo</label>
+            <input type="text" id="profileEditRole" class="form-control" placeholder="Es. Professionista / Studente">
+          </div>
+          <button type="submit" class="btn" style="width: 100%; font-size: 8.5pt; min-height: 38px;">Aggiorna Profilo</button>
+        </form>
+
+        <h4 style="font-size: 9.5pt; color: var(--color-secondary); margin-bottom: 6px;">📋 Iscrizioni & Abbonamenti</h4>
+        <div id="subscriptionsList" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; max-height: 140px; overflow-y: auto;"></div>
+        <form id="addSubForm" style="display: flex; gap: 6px; margin-bottom: 18px;">
+          <input type="text" id="subTitleInput" class="form-control" placeholder="Nome iscrizione / corso..." required style="flex: 1; height: 38px;">
+          <input type="date" id="subDateInput" class="form-control" style="width: 125px; height: 38px;" required>
+          <button type="submit" class="btn" style="height: 38px;">+</button>
+        </form>
+
+        <h3 style="font-size: 10.5pt; color: var(--color-primary); margin-bottom: 8px; padding-top: 14px; border-top: var(--border-width) solid var(--color-border);">1. Backup Locale (.json)</h3>
         <div style="display: flex; gap: 8px; margin-bottom: 18px;">
           <button type="button" class="btn" id="exportJsonBtn" style="flex: 1;">↓ Scarica Tutto</button>
           <button type="button" class="btn" id="importJsonBtn" style="flex: 1;">↑ Carica File</button>
@@ -605,6 +711,21 @@
       switchAuthView('welcome');
     }
 
+    // Iscrizione Istantanea Nuovo Utente
+    document.getElementById('quickSignupForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = document.getElementById('quickSignName').value.trim();
+      const email = document.getElementById('quickSignEmail').value.trim().toLowerCase();
+      const accountObj = {
+        name,
+        email,
+        createdAt: new Date().toISOString()
+      };
+      localStorage.setItem(AUTH_KEY, JSON.stringify(accountObj));
+      unlockDashboard(name);
+      showToast(`Il tuo Workspace è pronto, ${name}!`);
+    });
+
     // Pulsante Principale: Entra Subito!
     document.getElementById('enterGuestImmediateBtn').addEventListener('click', () => {
       let profileName = '';
@@ -613,7 +734,7 @@
         if (savedAcc && savedAcc.name) profileName = savedAcc.name;
       } catch (e) {}
       unlockDashboard(profileName);
-      showToast('Benvenuta nel Workspace Hub!');
+      showToast('Benvenuto nel Workspace Hub!');
     });
 
     document.getElementById('welcomeOpenCloudBtn').addEventListener('click', () => {
@@ -627,30 +748,42 @@
       switchAuthView('cloud');
     });
 
-    document.getElementById('backFromCloudBtn').addEventListener('click', () => switchAuthView('welcome'));
+    const backFromCloudBtn = document.getElementById('backFromCloudBtn');
+    if (backFromCloudBtn) backFromCloudBtn.addEventListener('click', () => switchAuthView('welcome'));
 
-    document.getElementById('welcomeImportFileBtn').addEventListener('click', () => {
+    const welcomeImportFileBtn = document.getElementById('welcomeImportFileBtn');
+    if (welcomeImportFileBtn) welcomeImportFileBtn.addEventListener('click', () => {
       document.getElementById('importJsonInput').click();
     });
 
-    document.getElementById('welcomeShowLoginBtn').addEventListener('click', () => {
-      try {
-        const savedAcc = JSON.parse(localStorage.getItem(AUTH_KEY) || 'null');
-        if (savedAcc && savedAcc.email) {
-          document.getElementById('loginEmail').value = savedAcc.email;
-          switchAuthView('login');
-        } else {
+    const welcomeShowLoginBtn = document.getElementById('welcomeShowLoginBtn');
+    if (welcomeShowLoginBtn) {
+      welcomeShowLoginBtn.addEventListener('click', () => {
+        try {
+          const savedAcc = JSON.parse(localStorage.getItem(AUTH_KEY) || 'null');
+          if (savedAcc && savedAcc.email) {
+            document.getElementById('loginEmail').value = savedAcc.email;
+            switchAuthView('login');
+          } else {
+            switchAuthView('reg1');
+          }
+        } catch (e) {
           switchAuthView('reg1');
         }
-      } catch (e) {
-        switchAuthView('reg1');
-      }
-    });
+      });
+    }
 
-    document.getElementById('backFromLoginBtn').addEventListener('click', () => switchAuthView('welcome'));
-    document.getElementById('backToWelcomeFromRegBtn').addEventListener('click', () => switchAuthView('welcome'));
-    document.getElementById('showRegisterViewBtn').addEventListener('click', () => switchAuthView('reg1'));
-    document.getElementById('backToStep1Btn').addEventListener('click', () => switchAuthView('reg1'));
+    const backFromLoginBtn = document.getElementById('backFromLoginBtn');
+    if (backFromLoginBtn) backFromLoginBtn.addEventListener('click', () => switchAuthView('welcome'));
+
+    const backToWelcomeFromRegBtn = document.getElementById('backToWelcomeFromRegBtn');
+    if (backToWelcomeFromRegBtn) backToWelcomeFromRegBtn.addEventListener('click', () => switchAuthView('welcome'));
+
+    const showRegisterViewBtn = document.getElementById('showRegisterViewBtn');
+    if (showRegisterViewBtn) showRegisterViewBtn.addEventListener('click', () => switchAuthView('reg1'));
+
+    const backToStep1Btn = document.getElementById('backToStep1Btn');
+    if (backToStep1Btn) backToStep1Btn.addEventListener('click', () => switchAuthView('reg1'));
 
     document.getElementById('welcomeCloudForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -1054,10 +1187,184 @@
       }
     }
 
+    const userProfileDrawer = document.getElementById('userProfileDrawer');
+    const openUserProfileBtn = document.getElementById('openUserProfileBtn');
+    if (openUserProfileBtn) {
+      openUserProfileBtn.addEventListener('click', () => {
+        loadDedicatedUserProfile();
+        userProfileDrawer.classList.add('open');
+      });
+    }
+    document.getElementById('closeUserProfileDrawerBtn').addEventListener('click', () => userProfileDrawer.classList.remove('open'));
+    userProfileDrawer.addEventListener('click', (e) => { if (e.target === userProfileDrawer) userProfileDrawer.classList.remove('open'); });
+
+    function loadDedicatedUserProfile() {
+      try {
+        const acc = JSON.parse(localStorage.getItem(AUTH_KEY) || '{}');
+        const name = acc.name || 'Utente';
+        const email = acc.email || 'email@esempio.it';
+        const role = acc.role || 'Professionista';
+
+        document.getElementById('displayUserName').textContent = name;
+        document.getElementById('displayUserEmail').textContent = email;
+        document.getElementById('displayUserRole').textContent = `Ruolo: ${role}`;
+        document.getElementById('userAvatarBubble').textContent = name.charAt(0).toUpperCase();
+
+        document.getElementById('dedProfileName').value = name;
+        document.getElementById('dedProfileEmail').value = email;
+        document.getElementById('dedProfileRole').value = role;
+
+        const toolsCount = workspaceState && Array.isArray(workspaceState.tools) ? workspaceState.tools.length : 0;
+        document.getElementById('displayUserToolsCount').textContent = `${toolsCount} Strumenti attivi`;
+
+        renderDedicatedSubsList(acc.subscriptions || []);
+      } catch (e) {}
+    }
+
+    function renderDedicatedSubsList(subs) {
+      const container = document.getElementById('dedicatedSubsList');
+      if (!container) return;
+      container.innerHTML = '';
+      if (!subs || subs.length === 0) {
+        container.innerHTML = '<p style="font-size: 8.5pt; color: var(--color-muted);">Nessuna iscrizione o abbonamento attivo registrato.</p>';
+        return;
+      }
+      subs.forEach((s, idx) => {
+        const item = document.createElement('div');
+        item.style.display = 'flex';
+        item.style.justifyContent = 'space-between';
+        item.style.alignItems = 'center';
+        item.style.padding = '8px 12px';
+        item.style.backgroundColor = 'var(--bg-canvas)';
+        item.style.borderRadius = '10px';
+        item.style.fontSize = '8.5pt';
+        item.innerHTML = `<div><strong>${s.title}</strong><br><span style="color: var(--color-secondary); font-weight: 600;">Scadenza: ${s.date || 'Senza data'}</span> ${s.cost ? '• ' + s.cost : ''}</div><button type="button" class="btn btn-mini" data-ded-sub-del="${idx}">Elimina</button>`;
+        container.appendChild(item);
+      });
+
+      container.querySelectorAll('[data-ded-sub-del]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = Number(btn.getAttribute('data-ded-sub-del'));
+          const acc = JSON.parse(localStorage.getItem(AUTH_KEY) || '{}');
+          if (acc.subscriptions) {
+            acc.subscriptions.splice(idx, 1);
+            localStorage.setItem(AUTH_KEY, JSON.stringify(acc));
+            renderDedicatedSubsList(acc.subscriptions);
+            showToast('Iscrizione rimossa');
+          }
+        });
+      });
+    }
+
+    document.getElementById('dedicatedProfileForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const acc = JSON.parse(localStorage.getItem(AUTH_KEY) || '{}');
+      acc.name = document.getElementById('dedProfileName').value.trim();
+      acc.email = document.getElementById('dedProfileEmail').value.trim().toLowerCase();
+      acc.role = document.getElementById('dedProfileRole').value.trim();
+      localStorage.setItem(AUTH_KEY, JSON.stringify(acc));
+      unlockDashboard(acc.name);
+      loadDedicatedUserProfile();
+      showToast('Profilo utente aggiornato!');
+    });
+
+    document.getElementById('dedicatedAddSubForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const title = document.getElementById('dedSubTitle').value.trim();
+      const date = document.getElementById('dedSubDate').value;
+      const cost = document.getElementById('dedSubCost').value.trim();
+      const acc = JSON.parse(localStorage.getItem(AUTH_KEY) || '{}');
+      if (!acc.subscriptions) acc.subscriptions = [];
+      acc.subscriptions.push({ id: Date.now(), title, date, cost, status: 'Attiva' });
+      localStorage.setItem(AUTH_KEY, JSON.stringify(acc));
+      document.getElementById('dedSubTitle').value = '';
+      document.getElementById('dedSubDate').value = '';
+      document.getElementById('dedSubCost').value = '';
+      renderDedicatedSubsList(acc.subscriptions);
+      showToast('Iscrizione / abbonamento aggiunto!');
+    });
+
+    document.getElementById('dedExportBackupBtn').addEventListener('click', () => {
+      document.getElementById('exportJsonBtn').click();
+    });
+
     const cloudDrawerOverlay = document.getElementById('cloudDrawerOverlay');
-    document.getElementById('openCloudDrawerBtn').addEventListener('click', () => cloudDrawerOverlay.classList.add('open'));
+    document.getElementById('openCloudDrawerBtn').addEventListener('click', () => {
+      loadUserProfileData();
+      cloudDrawerOverlay.classList.add('open');
+    });
     document.getElementById('closeCloudDrawerBtn').addEventListener('click', () => cloudDrawerOverlay.classList.remove('open'));
     cloudDrawerOverlay.addEventListener('click', (e) => { if (e.target === cloudDrawerOverlay) cloudDrawerOverlay.classList.remove('open'); });
+
+    function loadUserProfileData() {
+      try {
+        const acc = JSON.parse(localStorage.getItem(AUTH_KEY) || '{}');
+        if (acc.name) document.getElementById('profileEditName').value = acc.name;
+        if (acc.email) document.getElementById('profileEditEmail').value = acc.email;
+        if (acc.role) document.getElementById('profileEditRole').value = acc.role;
+        renderSubscriptionsList(acc.subscriptions || []);
+      } catch (e) {}
+    }
+
+    function renderSubscriptionsList(subs) {
+      const container = document.getElementById('subscriptionsList');
+      if (!container) return;
+      container.innerHTML = '';
+      if (!subs || subs.length === 0) {
+        container.innerHTML = '<p style="font-size: 8.5pt; color: var(--color-muted);">Nessuna iscrizione o abbonamento registrato.</p>';
+        return;
+      }
+      subs.forEach((s, idx) => {
+        const item = document.createElement('div');
+        item.style.display = 'flex';
+        item.style.justifyContent = 'space-between';
+        item.style.alignItems = 'center';
+        item.style.padding = '6px 10px';
+        item.style.backgroundColor = 'var(--bg-canvas)';
+        item.style.borderRadius = '8px';
+        item.style.fontSize = '8.5pt';
+        item.innerHTML = `<div><strong>${s.title}</strong><br><span style="color: var(--color-muted); font-size: 8pt;">Scadenza: ${s.date || 'Senza data'}</span></div><button type="button" class="btn btn-mini" data-sub-del="${idx}">✕</button>`;
+        container.appendChild(item);
+      });
+
+      container.querySelectorAll('[data-sub-del]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const idx = Number(btn.getAttribute('data-sub-del'));
+          const acc = JSON.parse(localStorage.getItem(AUTH_KEY) || '{}');
+          if (acc.subscriptions) {
+            acc.subscriptions.splice(idx, 1);
+            localStorage.setItem(AUTH_KEY, JSON.stringify(acc));
+            renderSubscriptionsList(acc.subscriptions);
+            showToast('Iscrizione rimossa');
+          }
+        });
+      });
+    }
+
+    document.getElementById('userProfileForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const acc = JSON.parse(localStorage.getItem(AUTH_KEY) || '{}');
+      acc.name = document.getElementById('profileEditName').value.trim();
+      acc.email = document.getElementById('profileEditEmail').value.trim().toLowerCase();
+      acc.role = document.getElementById('profileEditRole').value.trim();
+      localStorage.setItem(AUTH_KEY, JSON.stringify(acc));
+      unlockDashboard(acc.name);
+      showToast('Profilo e dati aggiornati!');
+    });
+
+    document.getElementById('addSubForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const title = document.getElementById('subTitleInput').value.trim();
+      const date = document.getElementById('subDateInput').value;
+      const acc = JSON.parse(localStorage.getItem(AUTH_KEY) || '{}');
+      if (!acc.subscriptions) acc.subscriptions = [];
+      acc.subscriptions.push({ id: Date.now(), title, date, status: 'Attiva' });
+      localStorage.setItem(AUTH_KEY, JSON.stringify(acc));
+      document.getElementById('subTitleInput').value = '';
+      document.getElementById('subDateInput').value = '';
+      renderSubscriptionsList(acc.subscriptions);
+      showToast('Iscrizione aggiunta con successo!');
+    });
 
     document.getElementById('cloudConfigForm').addEventListener('submit', (e) => {
       e.preventDefault();
