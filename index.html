@@ -253,13 +253,20 @@
             <input type="text" id="ghRepo" class="form-control" value="Workspace-hub" required>
           </div>
           <div class="form-group">
+            <label for="ghFile">Nome File Profilo (es. backup-nome.json)</label>
+            <input type="text" id="ghFile" class="form-control" value="backup-workspace.json" required placeholder="backup-workspace.json">
+          </div>
+          <div class="form-group">
             <label for="ghToken">Chiave GitHub (Token)</label>
             <input type="password" id="ghToken" class="form-control" placeholder="github_pat_..." required>
           </div>
-          <button type="submit" class="btn" style="width: 100%; margin-bottom: 20px;">Salva Chiave</button>
+          <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px;">
+            <button type="submit" class="btn" style="width: 100%;">Salva Chiavi nel Browser</button>
+            <button type="button" class="btn" id="copyCloudShareLinkBtn" style="width: 100%;">🔗 Copia Link Accesso Cloud</button>
+          </div>
         </form>
 
-        <div style="display: flex; flex-direction: column; gap: 12px; padding-top: 16px; border-top: 3px solid var(--color-border);">
+        <div style="display: flex; flex-direction: column; gap: 12px; padding-top: 16px; border-top: 1.5px solid var(--color-border);">
           <button type="button" class="btn btn-primary" id="pushToGithubCloudBtn" style="width: 100%;"><span>↑ Salva Tutti i Dati sul Cloud</span></button>
           <button type="button" class="btn" id="pullFromGithubCloudBtn" style="width: 100%;">↓ Scarica Dati dal Cloud</button>
         </div>
@@ -579,12 +586,12 @@
         },
         {
           id: 3,
-          title: "Ripartizione Utenze & Casa",
+          title: "Finanza Personale, Utenze & Quote",
           category: "operativita",
-          badge: "Casa",
-          desc: "Registro condiviso bollette (luce, gas, fibra), scadenze domestiche e promemoria manutenzione.",
-          status: "In pari",
-          url: "./template-modulo.html"
+          badge: "Finanza & Casa",
+          desc: "Bollette ricorrenti, ripartizione spese condivise, flusso di cassa lavorativo e fondi di accantonamento.",
+          status: "Operativo",
+          url: "./finanza.html"
         },
         {
           id: 4,
@@ -747,11 +754,33 @@
     }
 
     const CLOUD_CFG_KEY = 'ws_github_cloud_cfg';
+
+    function applyCloudLinkFromHash() {
+      try {
+        if (window.location.hash && window.location.hash.startsWith('#cloud=')) {
+          const encoded = window.location.hash.slice(7);
+          const decoded = JSON.parse(decodeURIComponent(escape(atob(encoded))));
+          if (decoded && decoded.owner && decoded.repo && decoded.token) {
+            localStorage.setItem(CLOUD_CFG_KEY, JSON.stringify({
+              owner: decoded.owner,
+              repo: decoded.repo,
+              file: decoded.file || 'backup-workspace.json',
+              token: decoded.token
+            }));
+            history.replaceState(null, '', window.location.pathname + window.location.search);
+            showToast(`Chiavi Cloud caricate (${decoded.file || 'backup-workspace.json'})`);
+          }
+        }
+      } catch (e) {}
+    }
+
     function loadCloudConfig() {
+      applyCloudLinkFromHash();
       try {
         const cfg = JSON.parse(localStorage.getItem(CLOUD_CFG_KEY) || '{}');
         if (cfg.owner) document.getElementById('ghOwner').value = cfg.owner;
         if (cfg.repo) document.getElementById('ghRepo').value = cfg.repo;
+        if (cfg.file) document.getElementById('ghFile').value = cfg.file;
         if (cfg.token) document.getElementById('ghToken').value = cfg.token;
         if (cfg.lastSync) document.getElementById('cloudLastSyncLabel').textContent = 'Ultimo sync: ' + cfg.lastSync;
 
@@ -767,14 +796,35 @@
 
     function gatherAllWorkspaceData() {
       return {
+        backupType: 'workspace-hub-full',
         exportedAt: new Date().toISOString(),
         accountAuth: JSON.parse(localStorage.getItem(AUTH_KEY) || 'null'),
         dashboard: JSON.parse(localStorage.getItem('ws_dashboard_state') || 'null'),
+        finanza: JSON.parse(localStorage.getItem('ws_module_finanza') || 'null'),
         botanica: JSON.parse(localStorage.getItem('ws_module_botanica') || 'null'),
         tipografia: JSON.parse(localStorage.getItem('ws_module_tipografia') || 'null'),
         preventivi: JSON.parse(localStorage.getItem('ws_module_preventivi') || 'null'),
-        prompts: JSON.parse(localStorage.getItem('ws_module_prompts') || 'null')
+        prompts: JSON.parse(localStorage.getItem('ws_module_prompts') || 'null'),
+        calendario: JSON.parse(localStorage.getItem('ws_module_calendario') || 'null')
       };
+    }
+
+    function restoreAllWorkspaceData(parsed) {
+      if (!parsed || typeof parsed !== 'object') return false;
+      if (parsed.accountAuth) localStorage.setItem(AUTH_KEY, JSON.stringify(parsed.accountAuth));
+      if (parsed.dashboard) localStorage.setItem('ws_dashboard_state', JSON.stringify(parsed.dashboard));
+      if (parsed.finanza) localStorage.setItem('ws_module_finanza', JSON.stringify(parsed.finanza));
+      if (parsed.botanica) localStorage.setItem('ws_module_botanica', JSON.stringify(parsed.botanica));
+      if (parsed.tipografia) localStorage.setItem('ws_module_tipografia', JSON.stringify(parsed.tipografia));
+      if (parsed.preventivi) localStorage.setItem('ws_module_preventivi', JSON.stringify(parsed.preventivi));
+      if (parsed.prompts) localStorage.setItem('ws_module_prompts', JSON.stringify(parsed.prompts));
+      if (parsed.calendario) localStorage.setItem('ws_module_calendario', JSON.stringify(parsed.calendario));
+      return true;
+    }
+
+    function getSanitizedCloudFileName(rawName) {
+      const clean = (rawName || 'backup-workspace.json').trim().replace(/[^a-zA-Z0-9._-]/g, '-');
+      return clean.endsWith('.json') ? clean : `${clean}.json`;
     }
 
     async function pushAllDataToGithub() {
@@ -783,14 +833,15 @@
         showToast('Inserisci prima Utente, Repository e Chiave');
         return;
       }
-      const apiUrl = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/backup-workspace.json`;
+      const targetFile = getSanitizedCloudFileName(cfg.file);
+      const apiUrl = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${targetFile}`;
       const headers = {
         'Authorization': `Bearer ${cfg.token}`,
         'Accept': 'application/vnd.github+json',
         'Content-Type': 'application/json'
       };
       try {
-        showToast('Salvataggio su GitHub Cloud in corso...');
+        showToast(`Salvataggio ${targetFile} su GitHub Cloud...`);
         let sha = undefined;
         const checkRes = await fetch(apiUrl, { headers });
         if (checkRes.ok) {
@@ -801,17 +852,17 @@
           method: 'PUT',
           headers,
           body: JSON.stringify({
-            message: 'Sync backup Workspace Hub ' + new Date().toLocaleString('it-IT'),
+            message: `Sync ${targetFile} (${new Date().toLocaleString('it-IT')})`,
             content: utf8ToBase64(JSON.stringify(gatherAllWorkspaceData(), null, 2)),
             ...(sha ? { sha } : {})
           })
         });
         if (!putRes.ok) throw new Error('Errore API GitHub');
-        const nowLabel = new Date().toLocaleString('it-IT');
+        const nowLabel = `${targetFile} • ${new Date().toLocaleString('it-IT')}`;
         cfg.lastSync = nowLabel;
         localStorage.setItem(CLOUD_CFG_KEY, JSON.stringify(cfg));
         document.getElementById('cloudLastSyncLabel').textContent = 'Ultimo sync: ' + nowLabel;
-        showToast('Tutti i dati salvati su GitHub Cloud!');
+        showToast(`Dati salvati in ${targetFile} sul Cloud!`);
       } catch (err) {
         showToast('Errore sync: verifica Chiave o Repository');
       }
@@ -823,25 +874,21 @@
         showToast('Inserisci prima Utente, Repository e Chiave');
         return;
       }
-      const apiUrl = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/backup-workspace.json?t=${Date.now()}`;
+      const targetFile = getSanitizedCloudFileName(cfg.file);
+      const apiUrl = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${targetFile}?t=${Date.now()}`;
       try {
-        showToast('Scaricamento dal Cloud in corso...');
+        showToast(`Scaricamento ${targetFile} dal Cloud...`);
         const res = await fetch(apiUrl, {
           headers: { 'Authorization': `Bearer ${cfg.token}`, 'Accept': 'application/vnd.github+json' }
         });
         if (!res.ok) throw new Error('Non trovato');
         const fileData = await res.json();
         const parsed = JSON.parse(base64ToUtf8(fileData.content));
-        if (parsed.accountAuth) localStorage.setItem(AUTH_KEY, JSON.stringify(parsed.accountAuth));
-        if (parsed.dashboard) localStorage.setItem('ws_dashboard_state', JSON.stringify(parsed.dashboard));
-        if (parsed.botanica) localStorage.setItem('ws_module_botanica', JSON.stringify(parsed.botanica));
-        if (parsed.tipografia) localStorage.setItem('ws_module_tipografia', JSON.stringify(parsed.tipografia));
-        if (parsed.preventivi) localStorage.setItem('ws_module_preventivi', JSON.stringify(parsed.preventivi));
-        if (parsed.prompts) localStorage.setItem('ws_module_prompts', JSON.stringify(parsed.prompts));
+        restoreAllWorkspaceData(parsed);
         await initData();
-        showToast('Dati e Account ripristinati dal Cloud!');
+        showToast(`Profilo ${targetFile} ripristinato dal Cloud!`);
       } catch (err) {
-        showToast('Nessun backup trovato o Chiave non valida');
+        showToast(`File ${targetFile} non trovato o Chiave non valida`);
       }
     }
 
@@ -857,9 +904,32 @@
         ...prev,
         owner: document.getElementById('ghOwner').value.trim(),
         repo: document.getElementById('ghRepo').value.trim(),
+        file: getSanitizedCloudFileName(document.getElementById('ghFile').value),
         token: document.getElementById('ghToken').value.trim()
       }));
-      showToast('Configurazione salvata');
+      showToast('Chiavi Cloud salvate nel browser');
+    });
+
+    document.getElementById('copyCloudShareLinkBtn').addEventListener('click', async () => {
+      const owner = document.getElementById('ghOwner').value.trim();
+      const repo = document.getElementById('ghRepo').value.trim();
+      const file = getSanitizedCloudFileName(document.getElementById('ghFile').value);
+      const token = document.getElementById('ghToken').value.trim();
+      if (!owner || !repo || !token) {
+        showToast('Compila Utente, Repository e Chiave prima di copiare il link');
+        return;
+      }
+      const payload = btoa(unescape(encodeURIComponent(JSON.stringify({ owner, repo, file, token }))));
+      const baseUrl = window.location.origin + window.location.pathname;
+      const shareUrl = `${baseUrl}#cloud=${payload}`;
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(shareUrl);
+        }
+        showToast(`Link accesso per ${file} copiato!`);
+      } catch (e) {
+        showToast('Impossibile copiare il link automaticamente');
+      }
     });
 
     document.getElementById('pushToGithubCloudBtn').addEventListener('click', pushAllDataToGithub);
@@ -902,15 +972,19 @@
       const file = e.target.files[0];
       if (!file) return;
       const reader = new FileReader();
-      reader.onload = (ev) => {
+      reader.onload = async (ev) => {
         try {
           const parsed = JSON.parse(ev.target.result);
-          if (parsed && Array.isArray(parsed.sections) && Array.isArray(parsed.tools)) {
+          if (parsed && parsed.backupType === 'workspace-hub-full') {
+            restoreAllWorkspaceData(parsed);
+            await initData();
+            showToast('Backup completo di tutti i moduli importato!');
+          } else if (parsed && Array.isArray(parsed.sections) && Array.isArray(parsed.tools)) {
             workspaceState = parsed;
             localStorage.setItem('ws_dashboard_state', JSON.stringify(workspaceState));
             renderNavigationAndFilters();
             renderGrid();
-            showToast('Backup importato');
+            showToast('Strumenti dashboard importati');
           }
         } catch (err) { showToast('Errore file JSON'); }
       };
@@ -918,14 +992,15 @@
     });
 
     document.getElementById('exportJsonBtn').addEventListener('click', () => {
-      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(workspaceState, null, 2));
+      const fullBackup = gatherAllWorkspaceData();
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(fullBackup, null, 2));
       const a = document.createElement('a');
       a.href = dataStr;
-      a.download = "tools.json";
+      a.download = `workspace-completo-${new Date().toISOString().split('T')[0]}.json`;
       document.body.appendChild(a);
       a.click();
       a.remove();
-      showToast('File tools.json scaricato');
+      showToast('Backup completo di tutti i moduli scaricato');
     });
 
     window.addEventListener('DOMContentLoaded', initData);
