@@ -10,61 +10,202 @@
   <link rel="stylesheet" href="./style.css">
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <style>
+    /* Barra inserimento rapido senza bordi superflui */
     .quick-add-bar {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
-      padding: 14px 16px;
+      padding: 10px 12px;
       background-color: var(--bg-surface);
-      border: var(--border-width) solid var(--color-secondary);
+      border: none;
       border-radius: var(--radius-card);
-      margin-bottom: 20px;
+      margin-bottom: 16px;
       align-items: center;
     }
     .quick-add-input {
-      flex: 1 1 260px;
+      flex: 1 1 240px;
       min-height: 44px;
-      border: var(--border-width) solid var(--color-border);
+      border: none;
       border-radius: var(--radius-pill);
-      padding: 0 18px;
+      padding: 0 16px;
       background-color: var(--bg-canvas);
       font-family: inherit;
       outline: none;
     }
     .quick-add-input:focus {
-      border-color: var(--color-primary);
+      box-shadow: 0 0 0 2px var(--color-secondary);
     }
-    .date-nav-bar {
+    .quick-select {
+      width: auto;
+      min-width: 150px;
+      min-height: 44px;
+      border: none;
+      border-radius: var(--radius-pill);
+      padding: 0 14px;
+      background-color: var(--bg-canvas);
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Controlli viste + Filtri a scomparsa */
+    .controls-toolbar {
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
       align-items: center;
-      gap: 12px;
-      margin-bottom: 18px;
+      gap: 10px;
+      margin-bottom: 14px;
     }
-    .date-nav-controls {
+    .view-pills-group {
       display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .collapsible-filters {
+      display: none;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 18px;
+      padding: 10px 12px;
+      background-color: var(--bg-surface);
+      border-radius: var(--radius-card);
+    }
+    .collapsible-filters.open {
+      display: flex;
+    }
+
+    /* Layout a 2 Colonne come da schizzo: Sinistra Calendario + Tasto (+), Destra Task/Impegni */
+    .life-hub-split {
+      display: grid;
+      grid-template-columns: 330px minmax(0, 1fr);
+      gap: 24px;
+      align-items: start;
+    }
+    .calendar-sidebar-card {
+      background-color: var(--bg-surface);
+      border: none;
+      border-radius: var(--radius-card);
+      padding: 18px;
+      position: sticky;
+      top: 84px;
+    }
+    .cal-sidebar-header {
+      display: flex;
+      justify-content: space-between;
       align-items: center;
       gap: 8px;
-      flex-wrap: wrap;
+      margin-bottom: 14px;
     }
+    .cal-month-nav {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-circle-plus {
+      width: 44px;
+      height: 44px;
+      min-width: 44px;
+      border-radius: 50%;
+      border: none;
+      background-color: var(--color-primary);
+      color: #FFFFFF;
+      font-size: 16pt;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.15s ease;
+    }
+    .btn-circle-plus:hover {
+      background-color: var(--color-secondary);
+    }
+
+    /* Griglia Calendario Mensile Pulita (stile schizzo) */
+    .mini-month-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      border-top: var(--border-width) solid var(--color-border);
+      border-left: var(--border-width) solid var(--color-border);
+      border-radius: 10px;
+      overflow: hidden;
+      background-color: var(--bg-canvas);
+    }
+    .mini-weekday {
+      text-align: center;
+      font-weight: 700;
+      font-size: 8pt;
+      color: var(--color-secondary);
+      padding: 7px 0;
+      background-color: var(--bg-surface);
+      border-right: var(--border-width) solid var(--color-border);
+      border-bottom: var(--border-width) solid var(--color-border);
+    }
+    .mini-day-cell {
+      aspect-ratio: 1 / 1;
+      border: none;
+      border-right: var(--border-width) solid var(--color-border);
+      border-bottom: var(--border-width) solid var(--color-border);
+      background-color: var(--bg-surface);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 9pt;
+      padding: 2px;
+      transition: background-color 0.15s ease;
+    }
+    .mini-day-cell:hover {
+      background-color: var(--color-accent);
+    }
+    .mini-day-cell.is-outside {
+      opacity: 0.35;
+    }
+    .mini-day-cell.is-today {
+      color: var(--color-primary);
+      font-weight: 700;
+    }
+    .mini-day-cell.is-selected {
+      background-color: var(--color-secondary);
+      color: #FFFFFF;
+    }
+    .mini-dots {
+      display: flex;
+      gap: 3px;
+      height: 5px;
+    }
+    .mini-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background-color: var(--color-primary);
+    }
+    .mini-day-cell.is-selected .mini-dot {
+      background-color: #FFFFFF;
+    }
+
+    /* Card Appuntamento / Task Minimali con Orario + Data in colonna */
     .agenda-item {
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
-      gap: 12px;
-      padding: 14px 16px;
+      gap: 14px;
+      padding: 16px 18px;
       background-color: var(--bg-surface);
-      border: var(--border-width) solid var(--color-border);
+      border: none;
       border-radius: var(--radius-card);
       margin-bottom: 10px;
-      transition: border-color 0.15s ease;
+      transition: background-color 0.15s ease;
     }
     .agenda-item.is-priority {
-      border-color: var(--color-primary);
+      border-left: 4px solid var(--color-primary);
     }
     .agenda-item.is-done {
-      opacity: 0.65;
+      opacity: 0.6;
     }
     .agenda-item.is-done .agenda-title {
       text-decoration: line-through;
@@ -72,16 +213,42 @@
     .agenda-left {
       display: flex;
       align-items: flex-start;
-      gap: 12px;
+      gap: 14px;
       flex: 1;
       min-width: 0;
+    }
+    .time-date-stack {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
+      min-width: 96px;
+    }
+    .time-pill {
+      width: 100%;
+      text-align: center;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      background-color: var(--color-primary);
+      color: #FFFFFF;
+      font-weight: 700;
+      font-size: 8.5pt;
+      white-space: nowrap;
+    }
+    .stack-date-label {
+      font-weight: 700;
+      font-size: 8.5pt;
+      color: var(--color-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
     }
     .task-checkbox {
       width: 26px;
       height: 26px;
       min-width: 26px;
       border-radius: 8px;
-      border: var(--border-width-strong) solid var(--color-secondary);
+      border: 2px solid var(--color-secondary);
       background-color: var(--bg-canvas);
       cursor: pointer;
       display: flex;
@@ -94,16 +261,6 @@
     .task-checkbox.checked {
       background-color: var(--color-secondary);
     }
-    .time-pill {
-      padding: 4px 10px;
-      border-radius: var(--radius-pill);
-      background-color: var(--color-primary);
-      color: #FFFFFF;
-      font-weight: 700;
-      font-size: 8.5pt;
-      white-space: nowrap;
-      margin-top: 2px;
-    }
     .agenda-title {
       font-weight: 700;
       font-size: 10.5pt;
@@ -115,7 +272,7 @@
       flex-wrap: wrap;
       gap: 8px;
       align-items: center;
-      margin-top: 4px;
+      margin-top: 6px;
       font-size: 8.5pt;
       color: var(--color-muted);
     }
@@ -129,62 +286,7 @@
       min-height: 36px;
       padding: 0 12px;
       font-size: 8.5pt;
-    }
-    .month-grid {
-      display: grid;
-      grid-template-columns: repeat(7, minmax(0, 1fr));
-      gap: 6px;
-    }
-    .month-weekday {
-      text-align: center;
-      font-weight: 700;
-      font-size: 8.5pt;
-      color: var(--color-secondary);
-      padding: 6px 0;
-    }
-    .month-cell {
-      min-height: 76px;
-      background-color: var(--bg-surface);
-      border: var(--border-width) solid var(--color-border);
-      border-radius: 12px;
-      padding: 8px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      cursor: pointer;
-      text-align: left;
-    }
-    .month-cell:hover {
-      border-color: var(--color-secondary);
-    }
-    .month-cell.is-selected {
-      border-color: var(--color-primary);
       background-color: var(--bg-canvas);
-    }
-    .month-cell.is-outside {
-      opacity: 0.4;
-    }
-    .month-day-num {
-      font-weight: 700;
-      font-size: 9.5pt;
-    }
-    .month-dots {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-      margin-top: 6px;
-    }
-    .event-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background-color: var(--color-secondary);
-    }
-    .event-dot.priority {
-      background-color: var(--color-primary);
-    }
-    .event-dot.accent {
-      background-color: var(--color-accent);
     }
     .week-day-group {
       margin-bottom: 20px;
@@ -194,7 +296,6 @@
       color: var(--color-secondary);
       padding-bottom: 6px;
       margin-bottom: 10px;
-      border-bottom: var(--border-width) solid var(--color-border);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -205,11 +306,16 @@
       gap: 8px;
       margin-bottom: 14px;
     }
-    @media (max-width: 600px) {
-      .month-cell {
-        min-height: 58px;
-        padding: 6px;
+
+    @media (max-width: 880px) {
+      .life-hub-split {
+        grid-template-columns: 1fr;
       }
+      .calendar-sidebar-card {
+        position: static;
+      }
+    }
+    @media (max-width: 600px) {
       .agenda-item {
         flex-direction: column;
       }
@@ -228,7 +334,6 @@
         <button type="button" class="btn btn-cloud" id="syncHubBtn">🔄 Sincronizza Hub</button>
         <button type="button" class="btn" id="openEmailModalBtn">✉️ Invia Email</button>
         <button type="button" class="btn" id="exportIcsBtn">📅 .ics</button>
-        <button type="button" class="btn btn-primary" id="openNewItemDrawerBtn"><span>+ Impegno</span></button>
       </div>
     </header>
 
@@ -236,15 +341,15 @@
       <div class="section-header">
         <div>
           <h1>Calendario Impegni & Life Hub</h1>
-          <p>Appuntamenti, task giornalieri, irrigazione piante, bollette e consegne in un'unica vista accessibile.</p>
+          <p>Appuntamenti, task giornalieri, irrigazione piante, bollette e consegne in un'unica vista essenziale.</p>
         </div>
         <span class="badge" id="calendarSummaryBadge">Oggi</span>
       </div>
 
-      <!-- INSERIMENTO RAPIDO (VOCALE O TESTO) -->
+      <!-- INSERIMENTO RAPIDO PULITO (SENZA BORDI SUPERFLUI) -->
       <form id="quickAddForm" class="quick-add-bar" aria-label="Inserimento rapido">
         <input type="text" id="quickAddInput" class="quick-add-input" placeholder="Scrivi o detta al volo: es. 'Domani 15:30 Call progetto' oppure 'Annaffiare Monstera'..." required>
-        <select id="quickAddContext" class="form-control" style="width: auto; min-width: 150px;" aria-label="Ambito">
+        <select id="quickAddContext" class="quick-select" aria-label="Ambito">
           <option value="Lavoro & Progetti">Lavoro & Progetti</option>
           <option value="Didattica & Corsi">Didattica & Corsi</option>
           <option value="Casa & Utenze">Casa & Utenze</option>
@@ -254,25 +359,21 @@
         <button type="submit" class="btn btn-primary"><span>+ Aggiungi</span></button>
       </form>
 
-      <!-- SELETTORE VISTE & NAVIGAZIONE DATA -->
-      <div class="date-nav-bar">
-        <div class="filter-bar" style="margin-bottom: 0; width: auto;">
+      <!-- BARRA VISTE & PULSANTE FILTRI A SCOMPARSA -->
+      <div class="controls-toolbar">
+        <div class="view-pills-group">
           <button type="button" class="chip active" data-cal-view="focus">Oggi / Focus</button>
           <button type="button" class="chip" data-cal-view="week">Settimana</button>
-          <button type="button" class="chip" data-cal-view="month">Mese</button>
           <button type="button" class="chip" data-cal-view="backlog">Da Pianificare</button>
         </div>
 
-        <div class="date-nav-controls">
-          <button type="button" class="btn btn-mini" id="prevDateBtn" aria-label="Periodo precedente">←</button>
-          <button type="button" class="btn btn-mini" id="todayDateBtn">Oggi</button>
-          <span class="badge" id="currentDateLabel" style="min-width: 150px; text-align: center;">Data</span>
-          <button type="button" class="btn btn-mini" id="nextDateBtn" aria-label="Periodo successivo">→</button>
-        </div>
+        <button type="button" class="btn" id="toggleFiltersBtn" aria-expanded="false" aria-controls="contextFilterBar">
+          <span>Filtri ▾</span>
+        </button>
       </div>
 
-      <!-- FILTRO AMBITO DI VITA -->
-      <div class="filter-bar" id="contextFilterBar">
+      <!-- FILTRI AMBITO A SCOMPARSA -->
+      <div class="collapsible-filters" id="contextFilterBar">
         <button type="button" class="chip active" data-ctx-filter="all">Tutti gli ambiti</button>
         <button type="button" class="chip" data-ctx-filter="Lavoro & Progetti">Lavoro</button>
         <button type="button" class="chip" data-ctx-filter="Didattica & Corsi">Didattica</button>
@@ -281,8 +382,30 @@
         <button type="button" class="chip" data-ctx-filter="Personale & Salute">Personale</button>
       </div>
 
-      <!-- AREA PRINCIPALE RENDERIZZAZIONE VISTE -->
-      <section id="calendarViewContainer" aria-live="polite"></section>
+      <!-- LAYOUT A 2 COLONNE COME DA SCHIZZO: CALENDARIO + (+) A SINISTRA | TASK & IMPEGNI A DESTRA -->
+      <div class="life-hub-split">
+        <!-- Colonna Sinistra: Sezione Calendario con GRIGLIA + Tasto (+) -->
+        <aside class="calendar-sidebar-card" aria-label="Sezione Calendario">
+          <div class="cal-sidebar-header">
+            <div class="cal-month-nav">
+              <button type="button" class="btn btn-mini" id="prevMonthBtn" aria-label="Mese precedente">←</button>
+              <strong id="calendarMonthTitle" style="font-size: 10pt; min-width: 110px; text-align: center;">Novembre 2026</strong>
+              <button type="button" class="btn btn-mini" id="nextMonthBtn" aria-label="Mese successivo">→</button>
+            </div>
+            <button type="button" class="btn-circle-plus" id="openNewItemDrawerBtn" title="Nuovo impegno o appuntamento" aria-label="Nuovo impegno">+</button>
+          </div>
+
+          <div class="mini-month-grid" id="miniMonthGrid"></div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px;">
+            <span class="meta-tag" id="selectedDayBanner">Giorno selezionato</span>
+            <button type="button" class="btn btn-mini" id="todayDateBtn">Vai a Oggi</button>
+          </div>
+        </aside>
+
+        <!-- Colonna Destra: Lista Task e Impegni -->
+        <section id="calendarViewContainer" aria-live="polite"></section>
+      </div>
     </main>
   </div>
 
@@ -363,7 +486,7 @@
         </form>
       </div>
 
-      <div style="margin-top: 20px; padding-top: 14px; border-top: var(--border-width) solid var(--color-border);">
+      <div style="margin-top: 20px; padding-top: 14px;">
         <button type="button" class="btn" id="deleteItemDrawerBtn" style="width: 100%; display: none;">Elimina Impegno</button>
       </div>
     </div>
@@ -403,7 +526,7 @@
         </form>
       </div>
 
-      <div style="margin-top: 16px; padding-top: 12px; border-top: var(--border-width) solid var(--color-border);">
+      <div style="margin-top: 16px; padding-top: 12px;">
         <span class="meta-tag" id="emailJsStatusTag">Verifica stato EmailJS...</span>
       </div>
     </div>
@@ -417,7 +540,7 @@
   <script>
     const STORAGE_KEY_CALENDARIO = 'ws_module_calendario';
     const EMAILJS_CFG_KEY = 'ws_emailjs_cfg';
-    const AUTH_KEY = 'ws_user_account_v1';
+    const PROFILE_KEY = 'ws_simple_profile_v1';
 
     function toIsoDate(d) {
       const year = d.getFullYear();
@@ -473,6 +596,7 @@
     let currentView = 'focus';
     let currentContextFilter = 'all';
     let selectedDateIso = todayIso;
+    let displayedMonthDate = new Date();
 
     function showToast(msg) {
       const toast = document.getElementById('toastBox');
@@ -496,7 +620,6 @@
     function syncWithWorkspaceModules(silent = false) {
       let importedCount = 0;
 
-      // 1. Finanza: Bollette da pagare
       try {
         const finRaw = localStorage.getItem('ws_module_finanza');
         if (finRaw) {
@@ -531,7 +654,6 @@
         }
       } catch (e) {}
 
-      // 2. Botanica: Promemoria Irrigazione
       try {
         const botRaw = localStorage.getItem('ws_module_botanica');
         if (botRaw) {
@@ -569,7 +691,6 @@
         }
       } catch (e) {}
 
-      // 3. Preventivi: Consegne attive
       try {
         const prevRaw = localStorage.getItem('ws_module_preventivi');
         if (prevRaw) {
@@ -617,7 +738,6 @@
       item.done = !item.done;
 
       if (item.done) {
-        // Se proviene da Finanza, segna la bolletta come pagata anche lì!
         if (item.sourceModule === 'finanza' && item.sourceId) {
           try {
             const finRaw = localStorage.getItem('ws_module_finanza');
@@ -632,7 +752,6 @@
           } catch (e) {}
         }
 
-        // Gestione ricorrenza intelligente (partendo dalla data reale di completamento)
         if (item.recurrence && item.recurrence !== 'none') {
           let nextDate = todayIso;
           if (item.recurrence === 'daily') nextDate = addDaysIso(todayIso, 1);
@@ -687,7 +806,65 @@
       document.getElementById('itemDrawerOverlay').classList.add('open');
     }
 
-    // --- RENDERING ACCESSIBILE DELLE VISTE ---
+    // --- RENDERING GRIGLIA CALENDARIO A SINISTRA ---
+    function renderMiniMonthCalendar(filteredItems) {
+      const grid = document.getElementById('miniMonthGrid');
+      grid.innerHTML = '';
+
+      const year = displayedMonthDate.getFullYear();
+      const month = displayedMonthDate.getMonth();
+      const monthName = displayedMonthDate.toLocaleDateString('it-IT', { month: 'long', year: 'numeric' });
+      document.getElementById('calendarMonthTitle').textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+      document.getElementById('selectedDayBanner').textContent = formatReadableDate(selectedDateIso);
+
+      ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'].forEach(wd => {
+        const hd = document.createElement('div');
+        hd.className = 'mini-weekday';
+        hd.textContent = wd;
+        grid.appendChild(hd);
+      });
+
+      const firstDay = new Date(year, month, 1);
+      const startOffset = (firstDay.getDay() + 6) % 7;
+      const gridStart = new Date(year, month, 1 - startOffset);
+
+      for (let i = 0; i < 35; i++) {
+        const cellDate = new Date(gridStart);
+        cellDate.setDate(gridStart.getDate() + i);
+        const cellIso = toIsoDate(cellDate);
+        const cellItems = filteredItems.filter(it => it.date === cellIso && !it.done);
+
+        const cellBtn = document.createElement('button');
+        cellBtn.type = 'button';
+        cellBtn.className = `mini-day-cell ${cellIso === selectedDateIso ? 'is-selected' : ''} ${cellIso === todayIso ? 'is-today' : ''} ${cellDate.getMonth() !== month ? 'is-outside' : ''}`;
+
+        const numSpan = document.createElement('span');
+        numSpan.textContent = cellDate.getDate();
+        cellBtn.appendChild(numSpan);
+
+        const dots = document.createElement('div');
+        dots.className = 'mini-dots';
+        cellItems.slice(0, 3).forEach(() => {
+          const dot = document.createElement('span');
+          dot.className = 'mini-dot';
+          dots.appendChild(dot);
+        });
+        cellBtn.appendChild(dots);
+
+        cellBtn.addEventListener('click', () => {
+          selectedDateIso = cellIso;
+          if (currentView === 'backlog') {
+            currentView = 'focus';
+            document.querySelectorAll('[data-cal-view]').forEach(b => b.classList.toggle('active', b.getAttribute('data-cal-view') === 'focus'));
+          }
+          renderCalendar();
+        });
+
+        grid.appendChild(cellBtn);
+      }
+    }
+
+    // --- RENDERING CARD CON DATA SOTTO L'ORARIO ---
     function createAgendaCardElement(item) {
       const row = document.createElement('article');
       row.className = `agenda-item ${item.priority && !item.done ? 'is-priority' : ''} ${item.done ? 'is-done' : ''}`;
@@ -704,10 +881,22 @@
         chk.addEventListener('click', () => toggleItemDone(item.id));
         left.appendChild(chk);
       } else {
+        const stack = document.createElement('div');
+        stack.className = 'time-date-stack';
+
         const timeBadge = document.createElement('span');
         timeBadge.className = 'time-pill';
         timeBadge.textContent = `${item.startTime || '09:00'}${item.endTime ? ' – ' + item.endTime : ''}`;
-        left.appendChild(timeBadge);
+        stack.appendChild(timeBadge);
+
+        if (item.date) {
+          const dateUnder = document.createElement('span');
+          dateUnder.className = 'stack-date-label';
+          dateUnder.textContent = formatReadableDate(item.date);
+          stack.appendChild(dateUnder);
+        }
+
+        left.appendChild(stack);
       }
 
       const info = document.createElement('div');
@@ -726,8 +915,10 @@
       badge.textContent = item.context;
       meta.appendChild(badge);
 
-      if (item.date) {
+      if (item.type === 'task' && item.date) {
         const dateSpan = document.createElement('span');
+        dateSpan.style.fontWeight = '700';
+        dateSpan.style.color = 'var(--color-secondary)';
         dateSpan.textContent = formatReadableDate(item.date);
         meta.appendChild(dateSpan);
       }
@@ -778,10 +969,7 @@
       container.innerHTML = '';
       const filtered = getFilteredItems();
 
-      const selDateObj = new Date(selectedDateIso + 'T12:00:00');
-      document.getElementById('currentDateLabel').textContent = selDateObj.toLocaleDateString('it-IT', {
-        weekday: 'short', day: 'numeric', month: 'long'
-      });
+      renderMiniMonthCalendar(filtered);
 
       const openTodayCount = filtered.filter(i => i.date === todayIso && !i.done).length;
       document.getElementById('calendarSummaryBadge').textContent = `${openTodayCount} attivi oggi`;
@@ -803,13 +991,13 @@
         }
 
         const evHeader = document.createElement('h2');
-        evHeader.style.marginTop = '12px';
-        evHeader.textContent = `Appuntamenti (${events.length})`;
+        evHeader.textContent = `Appuntamenti — ${formatReadableDate(selectedDateIso)} (${events.length})`;
         container.appendChild(evHeader);
 
         if (events.length === 0) {
           const emptyEv = document.createElement('p');
           emptyEv.style.marginBottom = '16px';
+          emptyEv.style.color = 'var(--color-muted)';
           emptyEv.textContent = 'Nessun appuntamento orario in questa giornata.';
           container.appendChild(emptyEv);
         } else {
@@ -823,6 +1011,7 @@
 
         if (tasks.length === 0) {
           const emptyTk = document.createElement('p');
+          emptyTk.style.color = 'var(--color-muted)';
           emptyTk.textContent = 'Nessun task pianificato per questa data.';
           container.appendChild(emptyTk);
         } else {
@@ -854,57 +1043,6 @@
           }
           container.appendChild(group);
         }
-      } else if (currentView === 'month') {
-        const year = selDateObj.getFullYear();
-        const month = selDateObj.getMonth();
-        const firstDay = new Date(year, month, 1);
-        const startOffset = (firstDay.getDay() + 6) % 7; // Lunedì = 0
-        const gridStart = new Date(year, month, 1 - startOffset);
-
-        const grid = document.createElement('div');
-        grid.className = 'month-grid';
-
-        ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'].forEach(wd => {
-          const hd = document.createElement('div');
-          hd.className = 'month-weekday';
-          hd.textContent = wd;
-          grid.appendChild(hd);
-        });
-
-        for (let i = 0; i < 35; i++) {
-          const cellDate = new Date(gridStart);
-          cellDate.setDate(gridStart.getDate() + i);
-          const cellIso = toIsoDate(cellDate);
-          const cellItems = filtered.filter(it => it.date === cellIso);
-
-          const cellBtn = document.createElement('button');
-          cellBtn.type = 'button';
-          cellBtn.className = `month-cell ${cellIso === selectedDateIso ? 'is-selected' : ''} ${cellDate.getMonth() !== month ? 'is-outside' : ''}`;
-
-          const num = document.createElement('span');
-          num.className = 'month-day-num';
-          num.textContent = cellDate.getDate();
-          cellBtn.appendChild(num);
-
-          const dots = document.createElement('div');
-          dots.className = 'month-dots';
-          cellItems.slice(0, 6).forEach(it => {
-            const dot = document.createElement('span');
-            dot.className = `event-dot ${it.priority ? 'priority' : (it.type === 'task' ? 'accent' : '')}`;
-            dots.appendChild(dot);
-          });
-          cellBtn.appendChild(dots);
-
-          cellBtn.addEventListener('click', () => {
-            selectedDateIso = cellIso;
-            currentView = 'focus';
-            document.querySelectorAll('[data-cal-view]').forEach(b => b.classList.toggle('active', b.getAttribute('data-cal-view') === 'focus'));
-            renderCalendar();
-          });
-
-          grid.appendChild(cellBtn);
-        }
-        container.appendChild(grid);
       } else if (currentView === 'backlog') {
         const unscheduled = filtered.filter(i => !i.date);
         const h = document.createElement('h2');
@@ -912,6 +1050,7 @@
         container.appendChild(h);
         if (unscheduled.length === 0) {
           const p = document.createElement('p');
+          p.style.color = 'var(--color-muted)';
           p.textContent = 'Nessun task senza data.';
           container.appendChild(p);
         } else {
@@ -959,7 +1098,6 @@
       };
     }
 
-    // --- GESTIONE DRAWER DETTAGLI ---
     function setDrawerItemType(type) {
       document.getElementById('itemTypeInput').value = type;
       document.getElementById('typeBtnTask').classList.toggle('active', type === 'task');
@@ -967,7 +1105,6 @@
       document.getElementById('eventTimeFields').style.display = type === 'event' ? 'block' : 'none';
     }
 
-    // --- EMAIL & ESPORTAZIONE .ICS ---
     function buildAgendaEmailSummary(scope) {
       const targetDates = scope === 'selected'
         ? [selectedDateIso]
@@ -1041,8 +1178,16 @@
         calendarItems = JSON.parse(JSON.stringify(defaultCalendarItems));
       }
 
-      // Auto-sincronizza all'apertura senza duplicati
       syncWithWorkspaceModules(true);
+
+      // Toggle Filtri a scomparsa
+      const toggleFiltersBtn = document.getElementById('toggleFiltersBtn');
+      const filterBar = document.getElementById('contextFilterBar');
+      toggleFiltersBtn.addEventListener('click', () => {
+        const isOpen = filterBar.classList.toggle('open');
+        toggleFiltersBtn.setAttribute('aria-expanded', String(isOpen));
+        toggleFiltersBtn.querySelector('span').textContent = isOpen ? 'Filtri ▴' : 'Filtri ▾';
+      });
 
       document.getElementById('quickAddForm').addEventListener('submit', (e) => {
         e.preventDefault();
@@ -1087,27 +1232,26 @@
         });
       });
 
-      document.getElementById('prevDateBtn').addEventListener('click', () => {
-        const step = currentView === 'month' ? -30 : (currentView === 'week' ? -7 : -1);
-        selectedDateIso = addDaysIso(selectedDateIso, step);
+      document.getElementById('prevMonthBtn').addEventListener('click', () => {
+        displayedMonthDate.setMonth(displayedMonthDate.getMonth() - 1);
         renderCalendar();
       });
 
-      document.getElementById('nextDateBtn').addEventListener('click', () => {
-        const step = currentView === 'month' ? 30 : (currentView === 'week' ? 7 : 1);
-        selectedDateIso = addDaysIso(selectedDateIso, step);
+      document.getElementById('nextMonthBtn').addEventListener('click', () => {
+        displayedMonthDate.setMonth(displayedMonthDate.getMonth() + 1);
         renderCalendar();
       });
 
       document.getElementById('todayDateBtn').addEventListener('click', () => {
         selectedDateIso = todayIso;
+        displayedMonthDate = new Date();
         renderCalendar();
       });
 
       document.getElementById('syncHubBtn').addEventListener('click', () => syncWithWorkspaceModules(false));
       document.getElementById('exportIcsBtn').addEventListener('click', exportCalendarToIcs);
 
-      // Drawer Nuovo/Modifica Impegno
+      // Drawer Nuovo/Modifica Impegno dal pulsante (+)
       const itemDrawer = document.getElementById('itemDrawerOverlay');
       document.getElementById('openNewItemDrawerBtn').addEventListener('click', () => {
         document.getElementById('itemDrawerTitle').textContent = 'Nuovo Impegno';
@@ -1167,10 +1311,6 @@
       const emailDrawer = document.getElementById('emailDrawerOverlay');
       document.getElementById('openEmailModalBtn').addEventListener('click', () => {
         try {
-          const acc = JSON.parse(localStorage.getItem(AUTH_KEY) || '{}');
-          if (acc.email && !document.getElementById('emailRecipientInput').value) {
-            document.getElementById('emailRecipientInput').value = acc.email;
-          }
           const ejs = JSON.parse(localStorage.getItem(EMAILJS_CFG_KEY) || '{}');
           document.getElementById('emailJsStatusTag').textContent = (ejs.serviceId && ejs.templateId && ejs.publicKey)
             ? 'Stato: EmailJS collegato e pronto'
@@ -1195,7 +1335,7 @@
         const ejsCfg = JSON.parse(localStorage.getItem(EMAILJS_CFG_KEY) || '{}');
 
         if (!ejsCfg.serviceId || !ejsCfg.templateId || !ejsCfg.publicKey || !window.emailjs) {
-          showToast('Configura prima le chiavi EmailJS in Profilo & Sync');
+          showToast('Configura prima le chiavi EmailJS in Profilo & Backup');
           return;
         }
 
