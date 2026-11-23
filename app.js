@@ -203,21 +203,62 @@ renderGrid();
 });
 }
 function renderGrid() {
-const query = searchInput.value.toLowerCase().trim();
-toolsGrid.innerHTML = '';
-let visibleCount = 0;
-workspaceState.tools.forEach(tool => {
-const matchesCategory = (currentCategory === 'all' || tool.category === currentCategory);
-const matchesSearch = tool.title.toLowerCase().includes(query) || tool.desc.toLowerCase().includes(query) || tool.badge.toLowerCase().includes(query);
-if (matchesCategory && matchesSearch) {
-visibleCount++;
-const card = document.createElement('article');
-card.className = 'tool-card';
-card.innerHTML = ⁠<div><div class="card-top"><div class="card-icon">${iconLibrary[tool.category] || iconLibrary.all}</div><span class="badge">${tool.badge}</span></div><h2>${tool.title}</h2><p class="card-desc">${tool.desc}</p></div><div class="card-footer"><span class="meta-tag">${tool.status}</span><a href="${tool.url}" class="btn">Apri →</a></div>⁠;
-toolsGrid.appendChild(card);
-}
-});
-counterBadge.textContent = ⁠${visibleCount} Strument${visibleCount === 1 ? 'o' : 'i'} attiv${visibleCount === 1 ? 'o' : 'i'}⁠;
+  const query = searchInput.value.toLowerCase().trim();
+  toolsGrid.innerHTML = '';
+  let visibleCount = 0;
+  workspaceState.tools.forEach(tool => {
+    const matchesCategory = (currentCategory === 'all' || (currentCategory === 'favorites' ? tool.isFavorite : tool.category === currentCategory));
+    const matchesSearch = tool.title.toLowerCase().includes(query) || tool.desc.toLowerCase().includes(query) || tool.badge.toLowerCase().includes(query);
+    if (matchesCategory && matchesSearch) {
+      visibleCount++;
+      const card = document.createElement('article');
+      card.className = 'tool-card';
+      const isFav = !!tool.isFavorite;
+      card.innerHTML = `<div><div class="card-top"><div style="display:flex; align-items:center; gap:8px;"><div class="card-icon">${iconLibrary[tool.category] || iconLibrary.all}</div><span class="badge">${tool.badge}</span></div><button type="button" class="favorite-star-btn ${isFav ? 'active' : ''}" data-fav-id="${tool.id}" title="${isFav ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti'}">${isFav ? '★' : '☆'}</button></div><h2>${tool.title}</h2><p class="card-desc">${tool.desc}</p></div><div class="card-footer"><span class="meta-tag">${tool.status}</span><a href="${tool.url}" class="btn">Apri →</a></div>`;
+      toolsGrid.appendChild(card);
+    }
+  });
+
+  if (visibleCount === 0) {
+    const emptyDiv = document.createElement('div');
+    emptyDiv.style.gridColumn = '1 / -1';
+    emptyDiv.style.textAlign = 'center';
+    emptyDiv.style.padding = '48px 24px';
+    emptyDiv.style.backgroundColor = 'var(--bg-surface)';
+    emptyDiv.style.borderRadius = 'var(--radius-card)';
+    emptyDiv.innerHTML = `
+      <div style="font-size: 32pt; margin-bottom: 12px;">🔍</div>
+      <h3 style="color: var(--color-primary); margin-bottom: 6px;">Nessun strumento trovato</h3>
+      <p style="color: var(--color-muted); margin-bottom: 16px; font-size: 9.5pt;">La ricerca o il filtro selezionato non ha prodotto risultati.</p>
+      <button type="button" class="btn btn-primary" id="resetSearchFilterBtn"><span>Mostra tutti gli strumenti</span></button>
+    `;
+    toolsGrid.appendChild(emptyDiv);
+    const resetBtn = document.getElementById('resetSearchFilterBtn');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        currentCategory = 'all';
+        renderNavigationAndFilters();
+        renderGrid();
+      });
+    }
+  }
+
+  counterBadge.textContent = `${visibleCount} Strument${visibleCount === 1 ? 'o' : 'i'} attivi`;
+
+  document.querySelectorAll('[data-fav-id]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = Number(btn.getAttribute('data-fav-id'));
+      const tool = workspaceState.tools.find(t => t.id === id);
+      if (tool) {
+        tool.isFavorite = !tool.isFavorite;
+        localStorage.setItem('ws_dashboard_state', JSON.stringify(workspaceState));
+        renderGrid();
+        showToast(tool.isFavorite ? 'Aggiunto ai preferiti ⭐' : 'Rimosso dai preferiti');
+      }
+    });
+  });
 }
 // --- SINCRONIZZAZIONE GRATUITA GITHUB CLOUD ---
 const CLOUD_CFG_KEY = 'ws_github_cloud_cfg';
@@ -394,3 +435,13 @@ a.remove();
 showToast('File tools.json scaricato');
 });
 window.addEventListener('DOMContentLoaded', initData);
+
+// Keyboard shortcut: Ctrl+K or / to focus search
+document.addEventListener('keydown', (e) => {
+  if ((e.key === '/' || (e.ctrlKey && e.key.toLowerCase() === 'k')) && document.activeElement !== searchInput) {
+    e.preventDefault();
+    searchInput.focus();
+    searchInput.select();
+    showToast('Ricerca rapida attiva');
+  }
+});

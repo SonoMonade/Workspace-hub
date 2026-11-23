@@ -321,6 +321,23 @@ align-items: flex-start;
 gap: 8px;
 margin-bottom: 12px;
 }
+.favorite-star-btn {
+background: transparent;
+border: none;
+font-size: 16pt;
+cursor: pointer;
+color: var(--color-muted);
+padding: 0 4px;
+line-height: 1;
+transition: transform 0.15s ease, color 0.15s ease;
+}
+.favorite-star-btn:hover {
+transform: scale(1.2);
+color: #D97706;
+}
+.favorite-star-btn.active {
+color: #D97706;
+}
 .card-icon {
 width: 40px;
 height: 40px;
