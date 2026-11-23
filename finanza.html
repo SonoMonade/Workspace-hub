@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Finanza Personale & Utenze — Workspace Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./style.css">
+  <style>
+    .kpi-card {
+      background-color: var(--bg-surface);
+      border: var(--border-width) solid var(--color-border);
+      border-radius: var(--radius-card);
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .kpi-card.highlight-primary { border-color: var(--color-primary); }
+    .kpi-card.highlight-secondary { border-color: var(--color-secondary); }
+    .kpi-value {
+      font-size: 16pt;
+      font-weight: 700;
+      color: var(--color-ink);
+      line-height: 1.2;
+    }
+    .kpi-sub { font-size: 8.5pt; color: var(--color-muted); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+    .progress-track {
+      width: 100%;
+      height: 12px;
+      background-color: var(--bg-canvas);
+      border-radius: var(--radius-pill);
+      overflow: hidden;
+      margin: 10px 0;
+    }
+    .progress-fill {
+      height: 100%;
+      background-color: var(--color-accent);
+      transition: width 0.25s ease;
+    }
+    .status-pill-due {
+      background-color: var(--color-primary);
+      color: #FFFFFF;
+    }
+    .status-pill-paid {
+      background-color: var(--color-accent);
+      color: var(--color-ink);
+    }
+    .split-banner {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 20px;
+      border: var(--border-width) solid var(--color-secondary);
+      border-radius: var(--radius-card);
+      margin-bottom: 20px;
+      background-color: var(--bg-surface);
+    }
+    .split-actions, .inline-btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .amount-in { font-size: 13pt; font-weight: 700; color: var(--color-secondary); }
+    .amount-out { font-size: 13pt; font-weight: 700; color: var(--color-primary); }
+  </style>
+</head>
+<body>
+  <div class="workspace-wrapper full-width-module">
+    <header class="top-bar">
+      <a href="./index.html" class="btn">← Dashboard</a>
+      <div class="top-actions">
+        <button type="button" class="btn" id="importFromPreventiviBtn">↓ Da Preventivi</button>
+        <button type="button" class="btn" id="exportFinanzaCsvBtn">CSV</button>
+        <button type="button" class="btn" id="exportFinanzaJsonBtn">JSON</button>
+        <span class="badge">Finanza & Casa</span>
+      </div>
+    </header>
+
+    <main class="main-content">
+      <div class="section-header">
+        <div>
+          <h1>Finanza Personale, Utenze & Lavoro</h1>
+          <p>Bollette ricorrenti, ripartizione quote condivise, flusso di cassa e fondi di accantonamento.</p>
+        </div>
+        <span class="badge" id="finanzaMonthBadge">Mese Corrente</span>
+      </div>
+
+      <!-- 4 KPI IN TEMPO REALE -->
+      <section class="kpi-grid" aria-label="Indicatori finanziari principali">
+        <div class="kpi-card highlight-secondary">
+          <span class="meta-tag">Saldo Flusso di Cassa</span>
+          <div class="kpi-value" id="kpiSaldoCassa">€ 0,00</div>
+          <span class="kpi-sub" id="kpiCassaSub">Entrate: € 0 • Uscite: € 0</span>
+        </div>
+        <div class="kpi-card highlight-primary">
+          <span class="meta-tag">Bollette Da Pagare</span>
+          <div class="kpi-value" id="kpiBolletteDue">€ 0,00</div>
+          <span class="kpi-sub" id="kpiBolletteSub">0 scadenze attive</span>
+        </div>
+        <div class="kpi-card">
+          <span class="meta-tag">Bilancio Quote Condivise</span>
+          <div class="kpi-value" id="kpiBilancioQuote">In pari</div>
+          <span class="kpi-sub" id="kpiQuoteSub">Nessun conguaglio aperto</span>
+        </div>
+        <div class="kpi-card">
+          <span class="meta-tag">Fondi & Accantonamenti</span>
+          <div class="kpi-value" id="kpiTotaleFondi">€ 0,00</div>
+          <span class="kpi-sub" id="kpiFondiSub">0 salvadanai attivi</span>
+        </div>
+      </section>
+
+      <!-- BARRA NAVIGAZIONE COMPITI FINANZIARI -->
+      <nav class="filter-bar" id="finanzaTabsBar" aria-label="Sezioni finanziarie">
+        <button type="button" class="chip active" data-fin-tab="bollette">1. Bollette & Utenze</button>
+        <button type="button" class="chip" data-fin-tab="ripartizione">2. Ripartizione Spese</button>
+        <button type="button" class="chip" data-fin-tab="cassa">3. Flusso Cassa & Lavoro</button>
+        <button type="button" class="chip" data-fin-tab="fondi">4. Fondi & Risparmi</button>
+      </nav>
+
+      <!-- TAB 1: BOLLETTE & UTENZE RICORRENTI -->
+      <section class="tab-panel active" id="panel-bollette">
+        <div class="tool-card card-spacer">
+          <h2>Nuova Bolletta / Utenza Ricorrente</h2>
+          <form id="bollettaForm" class="form-grid">
+            <div class="form-group">
+              <label for="bolFornitore">Utenza / Fornitore</label>
+              <input type="text" id="bolFornitore" class="form-control" required placeholder="Es. Luce Octopus / Fibra">
+            </div>
+            <div class="form-group">
+              <label for="bolImporto">Importo Totale (€)</label>
+              <input type="number" id="bolImporto" class="form-control" step="0.01" min="0" required placeholder="0.00">
+            </div>
+            <div class="form-group">
+              <label for="bolScadenza">Data Scadenza</label>
+              <input type="date" id="bolScadenza" class="form-control" required>
+            </div>
+            <div class="form-group">
+              <label for="bolFrequenza">Frequenza Rinnovo</label>
+              <select id="bolFrequenza" class="form-control">
+                <option value="Mensile">Mensile (ogni mese)</option>
+                <option value="Bimestrale" selected>Bimestrale (ogni 2 mesi)</option>
+                <option value="Trimestrale">Trimestrale (ogni 3 mesi)</option>
+                <option value="Annuale">Annuale</option>
+                <option value="Singola">Singola (una tantum)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="bolQuotaTua">La Tua Quota (%)</label>
+              <select id="bolQuotaTua" class="form-control">
+                <option value="100">100% Solo mia</option>
+                <option value="50" selected>50% / 50% Condivisa</option>
+                <option value="60">60% Tua / 40% Altri</option>
+                <option value="40">40% Tua / 60% Altri</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="bolPagataDa">Chi anticipa?</label>
+              <select id="bolPagataDa" class="form-control">
+                <option value="Tu">Io (SonoMonade)</option>
+                <option value="Coinquilino">Coinquilino / Partner</option>
+              </select>
+            </div>
+            <div class="form-actions-end">
+              <button type="submit" class="btn btn-primary"><span>Aggiungi Bolletta</span></button>
+            </div>
+          </form>
+        </div>
+
+        <div class="tools-grid" id="bolletteGrid"></div>
+      </section>
+
+      <!-- TAB 2: RIPARTIZIONE SPESE CONDIVISE -->
+      <section class="tab-panel" id="panel-ripartizione">
+        <div class="split-banner">
+          <div>
+            <h2 id="splitSummaryTitle">Riepilogo Conguaglio Condiviso</h2>
+            <p id="splitSummaryDesc">Calcolo automatico basato sulle spese condivise e sulle bollette anticipate.</p>
+          </div>
+          <div class="split-actions">
+            <button type="button" class="btn" id="copySplitSummaryBtn">Copia Riepilogo Quote</button>
+            <button type="button" class="btn btn-primary" id="settleAllSplitsBtn"><span>Salda Tutti i Conti</span></button>
+          </div>
+        </div>
+
+        <div class="tool-card card-spacer">
+          <h2>Nuova Spesa Condivisa</h2>
+          <form id="spesaCondivisaForm" class="form-grid">
+            <div class="form-group">
+              <label for="spDesc">Descrizione Spesa</label>
+              <input type="text" id="spDesc" class="form-control" required placeholder="Es. Spesa supermercato / Casa">
+            </div>
+            <div class="form-group">
+              <label for="spImporto">Importo Totale (€)</label>
+              <input type="number" id="spImporto" class="form-control" step="0.01" min="0.01" required placeholder="0.00">
+            </div>
+            <div class="form-group">
+              <label for="spPagatoDa">Pagato da</label>
+              <select id="spPagatoDa" class="form-control">
+                <option value="Tu">Io (SonoMonade)</option>
+                <option value="Coinquilino">Coinquilino / Partner</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="spQuotaTua">Tua Quota (%)</label>
+              <select id="spQuotaTua" class="form-control">
+                <option value="50" selected>50% / 50% (Alla pari)</option>
+                <option value="60">60% Tua / 40% Altro</option>
+                <option value="40">40% Tua / 60% Altro</option>
+                <option value="0">0% (Anticipata 100% per l'altro)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="spData">Data</label>
+              <input type="date" id="spData" class="form-control" required>
+            </div>
+            <div class="form-actions-end">
+              <button type="submit" class="btn btn-primary"><span>Registra Spesa Condivisa</span></button>
+            </div>
+          </form>
+        </div>
+
+        <div class="tools-grid" id="speseCondiviseGrid"></div>
+      </section>
+
+      <!-- TAB 3: FLUSSO DI CASSA & LAVORO -->
+      <section class="tab-panel" id="panel-cassa">
+        <div class="tool-card card-spacer">
+          <h2>Nuovo Movimento Personale o Lavorativo</h2>
+          <form id="movimentoForm" class="form-grid">
+            <div class="form-group">
+              <label for="movTipo">Tipo Movimento</label>
+              <select id="movTipo" class="form-control">
+                <option value="uscita">Uscita (-)</option>
+                <option value="entrata">Entrata (+)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="movTitolo">Causale / Descrizione</label>
+              <input type="text" id="movTitolo" class="form-control" required placeholder="Es. Fattura Consulenza / Spesa">
+            </div>
+            <div class="form-group">
+              <label for="movImporto">Importo (€)</label>
+              <input type="number" id="movImporto" class="form-control" step="0.01" min="0.01" required placeholder="0.00">
+            </div>
+            <div class="form-group">
+              <label for="movAmbito">Ambito & Categoria</label>
+              <select id="movAmbito" class="form-control">
+                <option value="Lavoro & Progetti">Lavoro & Progetti</option>
+                <option value="Didattica & Corsi">Didattica & Corsi</option>
+                <option value="Casa & Alimentari">Casa & Alimentari</option>
+                <option value="Botanica & Attrezzatura">Botanica & Attrezzatura</option>
+                <option value="Salute & Personale">Salute & Personale</option>
+                <option value="Tasse & Contributi">Tasse & Contributi</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="movData">Data</label>
+              <input type="date" id="movData" class="form-control" required>
+            </div>
+            <div class="form-actions-end">
+              <button type="submit" class="btn btn-primary"><span>Registra Movimento</span></button>
+            </div>
+          </form>
+        </div>
+
+        <div class="tools-grid" id="movimentiGrid"></div>
+      </section>
+
+      <!-- TAB 4: FONDI ACCANTONAMENTO & SALVADANAI -->
+      <section class="tab-panel" id="panel-fondi">
+        <div class="tool-card card-spacer">
+          <h2>Crea Nuovo Fondo / Salvadanaio</h2>
+          <form id="fondoForm" class="form-grid">
+            <div class="form-group">
+              <label for="fondoNome">Nome Fondo</label>
+              <input type="text" id="fondoNome" class="form-control" required placeholder="Es. Fondo Tasse & P.IVA">
+            </div>
+            <div class="form-group">
+              <label for="fondoAttuale">Già Accantonato (€)</label>
+              <input type="number" id="fondoAttuale" class="form-control" step="1" min="0" value="0" required>
+            </div>
+            <div class="form-group">
+              <label for="fondoTarget">Obiettivo Target (€)</label>
+              <input type="number" id="fondoTarget" class="form-control" step="1" min="1" required placeholder="1000">
+            </div>
+            <div class="form-actions-end">
+              <button type="submit" class="btn btn-primary"><span>Crea Fondo</span></button>
+            </div>
+          </form>
+        </div>
+
+        <div class="tools-grid" id="fondiGrid"></div>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast-box" id="toastBox" role="status" aria-live="polite">
+    <span class="toast-dot"></span>
+    <span id="toastMessage">Operazione completata</span>
+  </div>
+
+  <script>
+    const STORAGE_KEY_FINANZA = 'ws_module_finanza';
+
+    const defaultFinanzaState = {
+      bollette: [
+        {
+          id: 501,
+          fornitore: "Luce & Energia Casa",
+          importo: 92.00,
+          scadenza: "2026-11-28",
+          frequenza: "Bimestrale",
+          quotaTuaPerc: 50,
+          pagataDa: "Tu",
+          pagata: false
+        },
+        {
+          id: 502,
+          fornitore: "Fibra Ottica Internet",
+          importo: 29.90,
+          scadenza: "2026-12-03",
+          frequenza: "Mensile",
+          quotaTuaPerc: 50,
+          pagataDa: "Tu",
+          pagata: false
+        }
+      ],
+      speseCondivise: [
+        {
+          id: 601,
+          descrizione: "Spesa Alimentari & Casa",
+          importo: 64.00,
+          pagatoDa: "Tu",
+          quotaTuaPerc: 50,
+          data: "2026-11-20",
+          saldata: false
+        }
+      ],
+      movimenti: [
+        {
+          id: 701,
+          tipo: "entrata",
+          titolo: "Compenso Corso Alfabetizzazione Digitale",
+          importo: 480.00,
+          ambito: "Didattica & Corsi",
+          data: "2026-11-18"
+        },
+        {
+          id: 702,
+          tipo: "uscita",
+          titolo: "Materiale Botanico & Terriccio",
+          importo: 34.50,
+          ambito: "Botanica & Attrezzatura",
+          data: "2026-11-19"
+        }
+      ],
+      fondi: [
+        { id: 801, nome: "Fondo Tasse & Contributi", attuale: 450, target: 1500 },
+        { id: 802, nome: "Viaggi, Fotografia & Attrezzatura", attuale: 280, target: 800 }
+      ]
+    };
+
+    let finanzaState = JSON.parse(JSON.stringify(defaultFinanzaState));
+    let activeTab = 'bollette';
+
+    function showToast(msg) {
+      const toast = document.getElementById('toastBox');
+      document.getElementById('toastMessage').textContent = msg;
+      toast.style.display = 'flex';
+      setTimeout(() => { toast.style.display = 'none'; }, 3200);
+    }
+
+    async function copyModernClipboard(text, successMsg) {
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          ta.remove();
+        }
+        showToast(successMsg);
+      } catch (e) {
+        showToast('Impossibile copiare automaticamente');
+      }
+    }
+
+    function formatEur(val) {
+      return new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(val || 0);
+    }
+
+    function saveFinanzaState() {
+      localStorage.setItem(STORAGE_KEY_FINANZA, JSON.stringify(finanzaState));
+      renderAllFinanza();
+    }
+
+    function addMonthsToDateStr(dateStr, monthsToAdd) {
+      const d = new Date(dateStr || new Date().toISOString().split('T')[0]);
+      d.setMonth(d.getMonth() + monthsToAdd);
+      return d.toISOString().split('T')[0];
+    }
+
+    function toggleBollettaPagata(id) {
+      const b = finanzaState.bollette.find(item => item.id === id);
+      if (!b) return;
+      b.pagata = !b.pagata;
+
+      if (b.pagata) {
+        const tuaQuota = +(b.importo * (b.quotaTuaPerc / 100)).toFixed(2);
+        finanzaState.movimenti.unshift({
+          id: Date.now(),
+          tipo: 'uscita',
+          titolo: `Bolletta: ${b.fornitore} (Quota ${b.quotaTuaPerc}%)`,
+          importo: tuaQuota,
+          ambito: 'Casa & Alimentari',
+          data: new Date().toISOString().split('T')[0]
+        });
+
+        if (b.quotaTuaPerc < 100) {
+          finanzaState.speseCondivise.unshift({
+            id: Date.now() + 1,
+            descrizione: `Bolletta ${b.fornitore}`,
+            importo: b.importo,
+            pagatoDa: b.pagataDa,
+            quotaTuaPerc: b.quotaTuaPerc,
+            data: new Date().toISOString().split('T')[0],
+            saldata: false
+          });
+        }
+
+        const freqMap = { 'Mensile': 1, 'Bimestrale': 2, 'Trimestrale': 3, 'Annuale': 12 };
+        if (freqMap[b.frequenza]) {
+          finanzaState.bollette.unshift({
+            ...b,
+            id: Date.now() + 2,
+            scadenza: addMonthsToDateStr(b.scadenza, freqMap[b.frequenza]),
+            pagata: false
+          });
+          showToast(`Bolletta pagata e creata prossima scadenza (${b.frequenza})`);
+        } else {
+          showToast('Bolletta segnata come pagata');
+        }
+      } else {
+        showToast('Stato bolletta ripristinato su Da pagare');
+      }
+      saveFinanzaState();
+    }
+
+    function deleteBolletta(id) {
+      finanzaState.bollette = finanzaState.bollette.filter(b => b.id !== id);
+      saveFinanzaState();
+      showToast('Bolletta eliminata');
+    }
+
+    function computeNetSplitBalance() {
+      let netCredit = 0;
+      finanzaState.speseCondivise.forEach(s => {
+        if (s.saldata) return;
+        const quotaTua = s.importo * (s.quotaTuaPerc / 100);
+        const quotaAltro = s.importo - quotaTua;
+        if (s.pagatoDa === 'Tu') netCredit += quotaAltro;
+        else netCredit -= quotaTua;
+      });
+      return +netCredit.toFixed(2);
+    }
+
+    function toggleSpesaSaldata(id) {
+      const s = finanzaState.speseCondivise.find(item => item.id === id);
+      if (!s) return;
+      s.saldata = !s.saldata;
+      saveFinanzaState();
+      showToast(s.saldata ? 'Spesa saldata' : 'Spesa riaperta');
+    }
+
+    function deleteSpesaCondivisa(id) {
+      finanzaState.speseCondivise = finanzaState.speseCondivise.filter(s => s.id !== id);
+      saveFinanzaState();
+      showToast('Voce rimossa');
+    }
+
+    function deleteMovimento(id) {
+      finanzaState.movimenti = finanzaState.movimenti.filter(m => m.id !== id);
+      saveFinanzaState();
+      showToast('Movimento eliminato');
+    }
+
+    function addToFondo(id, delta) {
+      const f = finanzaState.fondi.find(item => item.id === id);
+      if (!f) return;
+      f.attuale = Math.max(0, +(f.attuale + delta).toFixed(2));
+      saveFinanzaState();
+      showToast(`Aggiornato ${f.nome}: ${formatEur(f.attuale)}`);
+    }
+
+    function deleteFondo(id) {
+      finanzaState.fondi = finanzaState.fondi.filter(f => f.id !== id);
+      saveFinanzaState();
+      showToast('Fondo rimosso');
+    }
+
+    function renderAllFinanza() {
+      let entrateTot = 0;
+      let usciteTot = 0;
+      finanzaState.movimenti.forEach(m => {
+        if (m.tipo === 'entrata') entrateTot += m.importo;
+        else usciteTot += m.importo;
+      });
+      const saldoCassa = entrateTot - usciteTot;
+      document.getElementById('kpiSaldoCassa').textContent = formatEur(saldoCassa);
+      document.getElementById('kpiCassaSub').textContent = `Entrate: ${formatEur(entrateTot)} • Uscite: ${formatEur(usciteTot)}`;
+
+      const dueBollette = finanzaState.bollette.filter(b => !b.pagata);
+      const totDue = dueBollette.reduce((acc, b) => acc + b.importo, 0);
+      document.getElementById('kpiBolletteDue').textContent = formatEur(totDue);
+      document.getElementById('kpiBolletteSub').textContent = `${dueBollette.length} bollett${dueBollette.length === 1 ? 'a' : 'e'} da saldare`;
+
+      const netSplit = computeNetSplitBalance();
+      const kpiQuoteEl = document.getElementById('kpiBilancioQuote');
+      const kpiQuoteSubEl = document.getElementById('kpiQuoteSub');
+      const splitTitleEl = document.getElementById('splitSummaryTitle');
+      const splitDescEl = document.getElementById('splitSummaryDesc');
+
+      if (Math.abs(netSplit) < 0.01) {
+        kpiQuoteEl.textContent = 'In pari (€ 0)';
+        kpiQuoteSubEl.textContent = 'Nessun conguaglio aperto';
+        splitTitleEl.textContent = 'Tutti i conti condivisi sono in pari';
+        splitDescEl.textContent = 'Non ci sono quote pendenti da ricevere o da versare.';
+      } else if (netSplit > 0) {
+        kpiQuoteEl.textContent = `+ ${formatEur(netSplit)}`;
+        kpiQuoteSubEl.textContent = 'Credito da ricevere';
+        splitTitleEl.textContent = `Ti devono ${formatEur(netSplit)}`;
+        splitDescEl.textContent = 'Hai anticipato più della tua quota sulle spese condivise aperte.';
+      } else {
+        kpiQuoteEl.textContent = `- ${formatEur(Math.abs(netSplit))}`;
+        kpiQuoteSubEl.textContent = 'Quota da versare';
+        splitTitleEl.textContent = `Devi versare ${formatEur(Math.abs(netSplit))}`;
+        splitDescEl.textContent = 'Conguaglio a favore del coinquilino/partner.';
+      }
+
+      const totFondi = finanzaState.fondi.reduce((acc, f) => acc + f.attuale, 0);
+      document.getElementById('kpiTotaleFondi').textContent = formatEur(totFondi);
+      document.getElementById('kpiFondiSub').textContent = `${finanzaState.fondi.length} salvadanai attivi`;
+
+      const bolGrid = document.getElementById('bolletteGrid');
+      bolGrid.innerHTML = '';
+      finanzaState.bollette.forEach(b => {
+        const tuaQuota = (b.importo * (b.quotaTuaPerc / 100)).toFixed(2);
+        const card = document.createElement('article');
+        card.className = 'tool-card';
+        card.innerHTML = `
+          <div>
+            <div class="card-top">
+              <span class="meta-tag">${b.scadenza} • ${b.frequenza}</span>
+              <span class="badge ${b.pagata ? 'status-pill-paid' : 'status-pill-due'}">${b.pagata ? 'Pagata' : 'Da Pagare'}</span>
+            </div>
+            <h2>${b.fornitore}</h2>
+            <p class="card-desc">
+              Totale: <strong>${formatEur(b.importo)}</strong><br>
+              Tua quota (${b.quotaTuaPerc}%): <strong>${formatEur(tuaQuota)}</strong> • Anticipa: ${b.pagataDa}
+            </p>
+          </div>
+          <div class="card-footer">
+            <button type="button" class="btn" onclick="deleteBolletta(${b.id})">Elimina</button>
+            <button type="button" class="btn ${b.pagata ? '' : 'btn-primary'}" onclick="toggleBollettaPagata(${b.id})">
+              <span>${b.pagata ? 'Riapri' : 'Segna Pagata ✓'}</span>
+            </button>
+          </div>
+        `;
+        bolGrid.appendChild(card);
+      });
+
+      const spGrid = document.getElementById('speseCondiviseGrid');
+      spGrid.innerHTML = '';
+      finanzaState.speseCondivise.forEach(s => {
+        const quotaTua = s.importo * (s.quotaTuaPerc / 100);
+        const quotaAltro = s.importo - quotaTua;
+        const card = document.createElement('article');
+        card.className = 'tool-card';
+        card.innerHTML = `
+          <div>
+            <div class="card-top">
+              <span class="meta-tag">${s.data} • Pagato da: ${s.pagatoDa}</span>
+              <span class="badge ${s.saldata ? 'status-pill-paid' : ''}">${s.saldata ? 'Saldata' : 'Aperta'}</span>
+            </div>
+            <h2>${s.descrizione}</h2>
+            <p class="card-desc">
+              Totale: <strong>${formatEur(s.importo)}</strong><br>
+              Tua quota (${s.quotaTuaPerc}%): <strong>${formatEur(quotaTua)}</strong> • Quota altro: <strong>${formatEur(quotaAltro)}</strong>
+            </p>
+          </div>
+          <div class="card-footer">
+            <button type="button" class="btn" onclick="deleteSpesaCondivisa(${s.id})">Elimina</button>
+            <button type="button" class="btn ${s.saldata ? '' : 'btn-primary'}" onclick="toggleSpesaSaldata(${s.id})">
+              <span>${s.saldata ? 'Riapri' : 'Segna Saldata'}</span>
+            </button>
+          </div>
+        `;
+        spGrid.appendChild(card);
+      });
+
+      const movGrid = document.getElementById('movimentiGrid');
+      movGrid.innerHTML = '';
+      finanzaState.movimenti.forEach(m => {
+        const isEntrata = m.tipo === 'entrata';
+        const card = document.createElement('article');
+        card.className = 'tool-card';
+        card.innerHTML = `
+          <div>
+            <div class="card-top">
+              <span class="meta-tag">${m.data}</span>
+              <span class="badge">${m.ambito}</span>
+            </div>
+            <h2>${m.titolo}</h2>
+            <p class="card-desc ${isEntrata ? 'amount-in' : 'amount-out'}">
+              ${isEntrata ? '+ ' : '- '}${formatEur(m.importo)}
+            </p>
+          </div>
+          <div class="card-footer">
+            <span class="meta-tag">${isEntrata ? 'Entrata' : 'Uscita'}</span>
+            <button type="button" class="btn" onclick="deleteMovimento(${m.id})">Elimina</button>
+          </div>
+        `;
+        movGrid.appendChild(card);
+      });
+
+      const fondiGrid = document.getElementById('fondiGrid');
+      fondiGrid.innerHTML = '';
+      finanzaState.fondi.forEach(f => {
+        const pct = Math.min(100, Math.round((f.attuale / Math.max(1, f.target)) * 100));
+        const card = document.createElement('article');
+        card.className = 'tool-card';
+        card.innerHTML = `
+          <div>
+            <div class="card-top">
+              <span class="meta-tag">Obiettivo: ${formatEur(f.target)}</span>
+              <span class="badge">${pct}%</span>
+            </div>
+            <h2>${f.nome}</h2>
+            <p>Accantonato: <strong>${formatEur(f.attuale)}</strong></p>
+            <div class="progress-track">
+              <div class="progress-fill" style="width: ${pct}%;"></div>
+            </div>
+          </div>
+          <div class="card-footer">
+            <button type="button" class="btn" onclick="deleteFondo(${f.id})">Elimina</button>
+            <div class="inline-btn-group">
+              <button type="button" class="btn" onclick="addToFondo(${f.id}, 25)">+ € 25</button>
+              <button type="button" class="btn btn-primary" onclick="addToFondo(${f.id}, 50)"><span>+ € 50</span></button>
+            </div>
+          </div>
+        `;
+        fondiGrid.appendChild(card);
+      });
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      try {
+        const saved = localStorage.getItem(STORAGE_KEY_FINANZA);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          finanzaState = {
+            bollette: parsed.bollette || [],
+            speseCondivise: parsed.speseCondivise || [],
+            movimenti: parsed.movimenti || [],
+            fondi: parsed.fondi || []
+          };
+        }
+      } catch (e) {}
+
+      const todayStr = new Date().toISOString().split('T')[0];
+      document.getElementById('bolScadenza').value = todayStr;
+      document.getElementById('spData').value = todayStr;
+      document.getElementById('movData').value = todayStr;
+
+      const monthName = new Date().toLocaleDateString('it-IT', { month: 'long', year: 'numeric' });
+      document.getElementById('finanzaMonthBadge').textContent = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+
+      document.querySelectorAll('[data-fin-tab]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          activeTab = btn.getAttribute('data-fin-tab');
+          document.querySelectorAll('[data-fin-tab]').forEach(b => b.classList.toggle('active', b.getAttribute('data-fin-tab') === activeTab));
+          document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === `panel-${activeTab}`));
+        });
+      });
+
+      document.getElementById('bollettaForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        finanzaState.bollette.unshift({
+          id: Date.now(),
+          fornitore: document.getElementById('bolFornitore').value.trim(),
+          importo: parseFloat(document.getElementById('bolImporto').value) || 0,
+          scadenza: document.getElementById('bolScadenza').value,
+          frequenza: document.getElementById('bolFrequenza').value,
+          quotaTuaPerc: parseInt(document.getElementById('bolQuotaTua').value, 10),
+          pagataDa: document.getElementById('bolPagataDa').value,
+          pagata: false
+        });
+        e.target.reset();
+        document.getElementById('bolScadenza').value = todayStr;
+        saveFinanzaState();
+        showToast('Bolletta registrata');
+      });
+
+      document.getElementById('spesaCondivisaForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        finanzaState.speseCondivise.unshift({
+          id: Date.now(),
+          descrizione: document.getElementById('spDesc').value.trim(),
+          importo: parseFloat(document.getElementById('spImporto').value) || 0,
+          pagatoDa: document.getElementById('spPagatoDa').value,
+          quotaTuaPerc: parseInt(document.getElementById('spQuotaTua').value, 10),
+          data: document.getElementById('spData').value,
+          saldata: false
+        });
+        e.target.reset();
+        document.getElementById('spData').value = todayStr;
+        saveFinanzaState();
+        showToast('Spesa condivisa aggiunta');
+      });
+
+      document.getElementById('settleAllSplitsBtn').addEventListener('click', () => {
+        finanzaState.speseCondivise.forEach(s => { s.saldata = true; });
+        saveFinanzaState();
+        showToast('Tutti i conti condivisi sono stati saldati!');
+      });
+
+      document.getElementById('copySplitSummaryBtn').addEventListener('click', () => {
+        const net = computeNetSplitBalance();
+        const openItems = finanzaState.speseCondivise.filter(s => !s.saldata);
+        const lines = [
+          'RIEPILOGO SPESE & UTENZE CONDIVISE',
+          ...openItems.map(s => `- ${s.descrizione} (${s.data}): Totale ${formatEur(s.importo)} | Pagato da ${s.pagatoDa} | Quota tua ${s.quotaTuaPerc}%`),
+          '',
+          net > 0 ? `SALDO FINALE: Ti devono ${formatEur(net)}` : (net < 0 ? `SALDO FINALE: Devi dare ${formatEur(Math.abs(net))}` : 'SALDO FINALE: In pari (€ 0,00)')
+        ];
+        copyModernClipboard(lines.join('\n'), 'Riepilogo quote copiato negli appunti');
+      });
+
+      document.getElementById('movimentoForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        finanzaState.movimenti.unshift({
+          id: Date.now(),
+          tipo: document.getElementById('movTipo').value,
+          titolo: document.getElementById('movTitolo').value.trim(),
+          importo: parseFloat(document.getElementById('movImporto').value) || 0,
+          ambito: document.getElementById('movAmbito').value,
+          data: document.getElementById('movData').value
+        });
+        e.target.reset();
+        document.getElementById('movData').value = todayStr;
+        saveFinanzaState();
+        showToast('Movimento registrato');
+      });
+
+      document.getElementById('fondoForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        finanzaState.fondi.unshift({
+          id: Date.now(),
+          nome: document.getElementById('fondoNome').value.trim(),
+          attuale: parseFloat(document.getElementById('fondoAttuale').value) || 0,
+          target: parseFloat(document.getElementById('fondoTarget').value) || 100
+        });
+        e.target.reset();
+        saveFinanzaState();
+        showToast('Nuovo fondo creato');
+      });
+
+      document.getElementById('importFromPreventiviBtn').addEventListener('click', () => {
+        try {
+          const prevRaw = localStorage.getItem('ws_module_preventivi');
+          if (!prevRaw) {
+            showToast('Nessun preventivo trovato in memoria');
+            return;
+          }
+          const preventivi = JSON.parse(prevRaw);
+          const approvati = preventivi.filter(p => p.stato === 'Approvato' || p.stato === 'Consegnato');
+          if (approvati.length === 0) {
+            showToast('Nessun preventivo Approvato o Consegnato da importare');
+            return;
+          }
+          let importedCount = 0;
+          approvati.forEach(p => {
+            const importId = `prev_${p.id}`;
+            const alreadyImported = finanzaState.movimenti.some(m => m.refId === importId);
+            if (!alreadyImported) {
+              finanzaState.movimenti.unshift({
+                id: Date.now() + importedCount,
+                refId: importId,
+                tipo: 'entrata',
+                titolo: `Preventivo: ${p.cliente} — ${p.attivita}`,
+                importo: +(p.ore * p.tariffa).toFixed(2),
+                ambito: 'Lavoro & Progetti',
+                data: p.scadenza || todayStr
+              });
+              importedCount++;
+            }
+          });
+          if (importedCount > 0) {
+            saveFinanzaState();
+            showToast(`Importat${importedCount === 1 ? 'o' : 'i'} ${importedCount} preventiv${importedCount === 1 ? 'o' : 'i'} come entrate!`);
+          } else {
+            showToast('I preventivi approvati sono già presenti nel flusso di cassa');
+          }
+        } catch (err) {
+          showToast('Errore durante l’importazione dai preventivi');
+        }
+      });
+
+      document.getElementById('exportFinanzaJsonBtn').addEventListener('click', () => {
+        const a = document.createElement('a');
+        a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(finanzaState, null, 2));
+        a.download = "workspace-finanza.json";
+        a.click();
+        showToast('Backup Finanza JSON scaricato');
+      });
+
+      document.getElementById('exportFinanzaCsvBtn').addEventListener('click', () => {
+        const headers = ['tipo', 'titolo', 'importo', 'ambito', 'data'];
+        const rows = finanzaState.movimenti.map(m => headers.map(h => `"${String(m[h] || '').replace(/"/g, '""')}"`).join(','));
+        const a = document.createElement('a');
+        a.href = "data:text/csv;charset=utf-8," + encodeURIComponent([headers.join(','), ...rows].join('\n'));
+        a.download = "workspace-movimenti-finanza.csv";
+        a.click();
+        showToast('Movimenti CSV esportati');
+      });
+
+      renderAllFinanza();
+    });
+  </script>
+</body>
+</html>
