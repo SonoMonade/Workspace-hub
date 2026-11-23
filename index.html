@@ -3,89 +3,104 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Workspace Hub — Dashboard Personale</title>
+  <link rel="manifest" href="./manifest.json">
   <meta name="theme-color" content="#7C0B44">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <title>Workspace Hub — Accesso Personale</title>
-  <link rel="manifest" href="./manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <style>
-    /* Porta di Accesso e Registrazione Responsive (Mobile, Tablet, Desktop) */
-    .auth-gate {
+    .auth-gate-overlay {
       position: fixed;
       inset: 0;
       background-color: var(--bg-canvas);
-      z-index: 9999;
-      display: flex;
+      z-index: 999;
+      display: none;
       align-items: center;
       justify-content: center;
-      padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom)) 16px;
+      padding: 20px;
       overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
     }
-    .auth-gate.hidden {
-      display: none;
+    .auth-gate-overlay.active {
+      display: flex;
     }
     .auth-card {
       width: 100%;
       max-width: 440px;
       background-color: var(--bg-surface);
-      border: 2px solid var(--color-primary);
-      border-radius: 20px;
-      padding: 24px 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      margin: auto;
+      border: var(--border-width-strong) solid var(--color-primary);
+      border-radius: var(--radius-card);
+      padding: 26px;
     }
     .auth-header {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 12px;
+      margin-bottom: 14px;
       padding-bottom: 14px;
-      border-bottom: 1.5px solid var(--color-border);
+      border-bottom: var(--border-width) solid var(--color-border);
     }
-    .onboarding-choices {
+    .auth-logo {
+      width: 44px;
+      height: 44px;
+      border: var(--border-width-strong) solid var(--color-primary);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: var(--color-primary);
+      font-size: 14pt;
+      flex-shrink: 0;
+    }
+    .welcome-actions {
       display: flex;
       flex-direction: column;
       gap: 10px;
+      margin-top: 16px;
     }
-    .choice-divider {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      color: var(--color-muted);
+    .welcome-divider {
+      text-align: center;
       font-size: 8.5pt;
-      font-weight: 600;
-      margin: 4px 0;
+      font-weight: 700;
+      color: var(--color-muted);
+      margin: 6px 0;
     }
-    .choice-divider::before,
-    .choice-divider::after {
-      content: "";
-      flex: 1;
-      height: 1.5px;
-      background-color: var(--color-border);
+    .otp-badge-demo {
+      background-color: var(--color-accent);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-weight: 700;
+      margin-bottom: 14px;
+      display: none;
+    }
+    .auth-error {
+      color: var(--color-primary);
+      font-weight: 700;
+      margin-bottom: 12px;
+      display: none;
     }
     .sync-status-bar {
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
       align-items: center;
-      gap: 12px;
-      padding: 14px 18px;
-      margin-bottom: 20px;
+      gap: 10px;
+      padding: 10px 16px;
+      margin-bottom: 18px;
       background-color: var(--bg-surface);
-      border: 1.5px solid var(--color-border);
+      border: var(--border-width) solid var(--color-border);
       border-radius: var(--radius-card);
     }
     .sync-status-info {
       display: flex;
       align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
+      gap: 8px;
+      font-size: 9pt;
     }
     .status-dot {
       width: 10px;
@@ -97,154 +112,129 @@
     .status-dot.cloud-active {
       background-color: var(--color-accent);
     }
-    .auth-error {
-      color: var(--color-primary);
-      font-weight: 700;
-      font-size: 9pt;
-      display: none;
-    }
-    .auth-info-box {
-      background-color: var(--bg-canvas);
-      border: 1.5px dashed var(--color-secondary);
-      border-radius: 12px;
-      padding: 12px 14px;
-      font-size: 9pt;
-    }
-    .otp-input {
-      text-align: center;
-      font-size: 16pt !important;
-      font-weight: 700;
-      letter-spacing: 0.3em;
-    }
-    @media (max-width: 480px) {
-      .auth-card {
-        padding: 20px 16px;
-        border-radius: 16px;
-      }
-    }
   </style>
 </head>
 <body>
-  <!-- PORTA DI ACCESSO SNELlA A 3 VIE -->
-  <div class="auth-gate" id="authGate">
+
+  <!-- PORTA D'INGRESSO SNELITA A 3 VIE -->
+  <div class="auth-gate-overlay" id="authGateOverlay" role="dialog" aria-modal="true" aria-labelledby="authTitle">
     <div class="auth-card">
       <div class="auth-header">
-        <div class="brand-mark" style="margin-bottom: 0; flex-shrink: 0;">W</div>
+        <div class="auth-logo">W</div>
         <div>
           <h1 id="authTitle">Workspace Hub</h1>
-          <p id="authSubtitle" style="font-size: 9pt;">Il tuo gestionale modulare personale</p>
+          <p id="authSubtitle" style="font-size: 9pt;">Il tuo gestionale personale e lavorativo</p>
         </div>
       </div>
 
-      <!-- STEP 0: Scelta Rapida di Ingresso (Zero Attrito) -->
-      <div id="authWelcomeView" class="onboarding-choices">
-        <p>Scegli come iniziare: i tuoi dati restano privati sul tuo dispositivo oppure sul tuo profilo Cloud GitHub.</p>
-        <button type="button" class="btn btn-primary" id="quickEnterLocalBtn" style="width: 100%; min-height: 48px;">
-          <span>Entra Subito nel Workspace →</span>
-        </button>
+      <p class="auth-error" id="authErrorMsg"></p>
 
-        <div class="choice-divider">oppure carica i tuoi dati</div>
+      <!-- VISTA 1: BENVENUTO IMMEDIATO (ZERO ATTRITO) -->
+      <div id="welcomeChoiceBox">
+        <p style="margin-bottom: 14px;">Scegli come vuoi iniziare: puoi entrare subito in locale oppure ripristinare i tuoi dati dal Cloud.</p>
+        <div class="welcome-actions">
+          <button type="button" class="btn btn-primary" id="enterGuestImmediateBtn" style="width: 100%; min-height: 48px;">
+            <span>Entra Subito nel Workspace →</span>
+          </button>
 
-        <button type="button" class="btn btn-cloud" id="showQuickCloudRestoreBtn" style="width: 100%;">
-          ☁️ Ripristina da Cloud GitHub
-        </button>
-        <input type="file" id="welcomeImportFileInput" accept=".json" style="display: none;">
-        <button type="button" class="btn" id="welcomeImportFileBtn" style="width: 100%;">
-          📂 Apri da File Backup (.json)
-        </button>
+          <div class="welcome-divider">OPPURE RIPRISTINA I TUOI DATI</div>
 
-        <div class="choice-divider">sicurezza opzionale</div>
-
-        <button type="button" class="btn" id="showOptionalRegisterBtn" style="width: 100%; font-size: 9pt;">
-          🔒 Proteggi questo dispositivo con Password / Email
-        </button>
+          <button type="button" class="btn btn-cloud" id="welcomeOpenCloudBtn" style="width: 100%;">
+            ☁️ Ripristina da Cloud GitHub
+          </button>
+          <button type="button" class="btn" id="welcomeImportFileBtn" style="width: 100%;">
+            📂 Apri da File Backup (.json)
+          </button>
+          <button type="button" class="btn" id="welcomeShowLoginBtn" style="width: 100%;">
+            🔒 Entra / Proteggi con Password
+          </button>
+        </div>
       </div>
 
-      <!-- STEP 0B: Ripristino Rapido Cloud all'ingresso -->
-      <form id="authCloudRestoreForm" style="display: none; flex-direction: column; gap: 12px;">
-        <p>Inserisci le chiavi del tuo profilo Cloud per scaricare subito il tuo gestionale.</p>
-        <div class="form-group" style="margin-bottom: 0;">
-          <label for="welcomeGhOwner">Utente GitHub</label>
-          <input type="text" id="welcomeGhOwner" class="form-control" value="sonomonade" required>
+      <!-- VISTA 2: RIPRISTINO RAPIDO DA CLOUD ALL'INGRESSO -->
+      <form id="welcomeCloudForm" style="display: none;">
+        <p style="margin-bottom: 12px; font-size: 9pt;">Inserisci le chiavi GitHub per scaricare subito il tuo gestionale su questo dispositivo:</p>
+        <div class="form-group">
+          <label for="wGhOwner">Utente GitHub</label>
+          <input type="text" id="wGhOwner" class="form-control" value="sonomonade" required>
         </div>
-        <div class="form-group" style="margin-bottom: 0;">
-          <label for="welcomeGhRepo">Repository</label>
-          <input type="text" id="welcomeGhRepo" class="form-control" value="Workspace-hub" required>
+        <div class="form-group">
+          <label for="wGhRepo">Nome Repository</label>
+          <input type="text" id="wGhRepo" class="form-control" value="Workspace-hub" required>
         </div>
-        <div class="form-group" style="margin-bottom: 0;">
-          <label for="welcomeGhFile">File Profilo</label>
-          <input type="text" id="welcomeGhFile" class="form-control" value="backup-workspace.json" required>
+        <div class="form-group">
+          <label for="wGhFile">File Profilo</label>
+          <input type="text" id="wGhFile" class="form-control" value="backup-workspace.json" required>
         </div>
-        <div class="form-group" style="margin-bottom: 0;">
-          <label for="welcomeGhToken">Chiave GitHub (Token)</label>
-          <input type="password" id="welcomeGhToken" class="form-control" placeholder="github_pat_..." required>
+        <div class="form-group">
+          <label for="wGhToken">Chiave GitHub (Token)</label>
+          <input type="password" id="wGhToken" class="form-control" required placeholder="github_pat_...">
         </div>
-        <button type="submit" class="btn btn-primary" id="welcomeCloudSubmitBtn" style="width: 100%;">
-          <span>Scarica Profilo & Entra →</span>
-        </button>
-        <button type="button" class="btn" id="backFromCloudRestoreBtn" style="width: 100%;">← Torna indietro</button>
-      </form>
-
-      <!-- STEP 1: Registrazione Facoltativa con Email -->
-      <form id="authRegisterForm" style="display: none; flex-direction: column; gap: 12px;">
-        <p>Imposta una protezione personale su questo browser (con codice di verifica email se EmailJS è attivo).</p>
-        <div class="form-group" style="margin-bottom: 0;">
-          <label for="regOwnerName">Nome / Profilo</label>
-          <input type="text" id="regOwnerName" class="form-control" required value="SonoMonade" placeholder="Il tuo nome">
-        </div>
-        <div class="form-group" style="margin-bottom: 0;">
-          <label for="regEmail">Indirizzo Email</label>
-          <input type="email" id="regEmail" class="form-control" inputmode="email" autocomplete="email" required placeholder="nome@esempio.it">
-        </div>
-        <div class="form-group" style="margin-bottom: 0;">
-          <label for="regPasscode">Crea Password</label>
-          <input type="password" id="regPasscode" class="form-control" autocomplete="new-password" required minlength="4" placeholder="Minimo 4 caratteri">
-        </div>
-        <span class="auth-error" id="regErrorMsg">Inserisci una email valida e una password di almeno 4 caratteri.</span>
-        <button type="submit" class="btn btn-primary" id="regSubmitBtn" style="width: 100%; margin-top: 4px;"><span>Attiva Protezione →</span></button>
-        <button type="button" class="btn" id="backFromRegisterBtn" style="width: 100%;">← Entra senza password</button>
-      </form>
-
-      <!-- STEP 2: Conferma Codice Ricevuto via Email (OTP) -->
-      <form id="authVerifyForm" style="display: none; flex-direction: column; gap: 12px;">
-        <p>Codice di conferma a 6 cifre per <strong id="verifyTargetEmail"></strong>:</p>
-        <div class="auth-info-box" id="otpSandboxNotice" style="display: none;">
-          <strong>Codice generato in locale:</strong> <strong id="otpSandboxCode" style="color: var(--color-primary);"></strong>
-        </div>
-        <div class="form-group" style="margin-bottom: 0;">
-          <label for="verifyOtpInput">Codice di Conferma (6 cifre)</label>
-          <input type="text" id="verifyOtpInput" class="form-control otp-input" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" required placeholder="000000">
-        </div>
-        <span class="auth-error" id="verifyErrorMsg">Il codice inserito non è corretto. Riprova.</span>
-        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 4px;"><span>Conferma & Entra →</span></button>
-        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin-top: 4px;">
-          <button type="button" class="btn" id="resendOtpBtn" style="flex: 1 1 130px; font-size: 9pt;">Nuovo Codice</button>
-          <button type="button" class="btn" id="backToRegisterBtn" style="flex: 1 1 130px; font-size: 9pt;">Annulla</button>
+        <div style="display: flex; gap: 8px; margin-top: 12px;">
+          <button type="button" class="btn" id="backFromCloudBtn">← Indietro</button>
+          <button type="submit" class="btn btn-primary" style="flex: 1;"><span>Scarica ed Entra →</span></button>
         </div>
       </form>
 
-      <!-- STEP 3: Login Account Protetto -->
-      <form id="authLoginForm" style="display: none; flex-direction: column; gap: 12px;">
-        <p>Dispositivo protetto: <strong id="loginEmailBadge"></strong></p>
-        <div class="form-group" style="margin-bottom: 0;">
-          <label for="loginEmailInput">Email</label>
-          <input type="email" id="loginEmailInput" class="form-control" inputmode="email" autocomplete="email" required placeholder="nome@esempio.it">
+      <!-- VISTA 3: ACCESSO CON PASSWORD (FACOLTATIVA) -->
+      <form id="loginForm" style="display: none;">
+        <div class="form-group">
+          <label for="loginEmail">Email Profilo</label>
+          <input type="email" id="loginEmail" class="form-control" required placeholder="nome@esempio.it">
         </div>
-        <div class="form-group" style="margin-bottom: 0;">
-          <label for="loginPasscode">Password</label>
-          <input type="password" id="loginPasscode" class="form-control" autocomplete="current-password" required placeholder="Inserisci la tua password">
+        <div class="form-group">
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" class="form-control" required placeholder="••••••••">
         </div>
-        <span class="auth-error" id="loginErrorMsg">Email o password non corretti. Riprova.</span>
-        <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 4px;"><span>Sblocca Workspace →</span></button>
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px;">
+          <button type="submit" class="btn btn-primary" style="width: 100%;"><span>Sblocca con Password →</span></button>
+          <button type="button" class="btn" id="showRegisterViewBtn" style="width: 100%;">Crea Nuovo Account Protetto</button>
+          <button type="button" class="btn" id="backFromLoginBtn" style="width: 100%;">← Torna all'ingresso rapido</button>
+        </div>
+      </form>
+
+      <!-- VISTA 4: CREAZIONE ACCOUNT PROTETTO CON OTP -->
+      <form id="registerStep1Form" style="display: none;">
+        <div class="form-group">
+          <label for="regName">Il tuo Nome</label>
+          <input type="text" id="regName" class="form-control" required placeholder="Es. SonoMonade">
+        </div>
+        <div class="form-group">
+          <label for="regEmail">La tua Email</label>
+          <input type="email" id="regEmail" class="form-control" required placeholder="nome@esempio.it">
+        </div>
+        <div class="form-group">
+          <label for="regPassword">Scegli Password (min. 6 caratteri)</label>
+          <input type="password" id="regPassword" class="form-control" minlength="6" required placeholder="Crea password">
+        </div>
+        <div style="display: flex; gap: 8px; margin-top: 12px;">
+          <button type="button" class="btn" id="backToWelcomeFromRegBtn">← Indietro</button>
+          <button type="submit" class="btn btn-primary" style="flex: 1;"><span>Invia Codice →</span></button>
+        </div>
+      </form>
+
+      <form id="registerStep2Form" style="display: none;">
+        <div class="otp-badge-demo" id="otpDemoBanner"></div>
+        <p style="margin-bottom: 12px; font-size: 9pt;">Inserisci il codice a 6 cifre inviato a <strong id="confirmTargetEmail"></strong>:</p>
+        <div class="form-group">
+          <label for="regOtpInput">Codice di Conferma (6 cifre)</label>
+          <input type="text" id="regOtpInput" class="form-control" maxlength="6" pattern="[0-9]{6}" required placeholder="123456" style="letter-spacing: 4px; font-weight: 700; text-align: center;">
+        </div>
+        <div style="display: flex; gap: 8px; margin-top: 12px;">
+          <button type="button" class="btn" id="backToStep1Btn">← Indietro</button>
+          <button type="submit" class="btn btn-primary" style="flex: 1;"><span>Conferma ed Entra</span></button>
+        </div>
       </form>
     </div>
   </div>
 
-  <aside class="nav-rail">
+  <!-- Navigation Rail -->
+  <aside class="nav-rail" aria-label="Navigazione sezioni">
     <div class="brand-mark">W</div>
     <nav class="nav-items" id="railNavItems"></nav>
   </aside>
 
+  <!-- Main Workspace Wrapper -->
   <div class="workspace-wrapper">
     <header class="top-bar">
       <div class="search-box">
@@ -252,19 +242,20 @@
           <circle cx="11" cy="11" r="8"></circle>
           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
         </svg>
-        <input type="search" id="searchInput" placeholder="Cerca strumento, funzione o tag...">
+        <input type="search" id="searchInput" placeholder="Cerca strumento o funzione...">
       </div>
       <div class="top-actions">
-        <button class="btn btn-cloud" id="openCloudDrawerBtn">☁️ Profilo & Sync</button>
-        <button class="btn btn-primary" id="openDrawerBtn"><span>+ Nuovo</span></button>
+        <input type="file" id="importJsonInput" accept=".json" style="display: none;">
+        <button type="button" class="btn btn-cloud" id="openCloudDrawerBtn">☁️ Profilo & Sync</button>
+        <button type="button" class="btn btn-primary" id="openDrawerBtn"><span>+ Nuovo</span></button>
       </div>
     </header>
 
     <main class="main-content">
       <div class="section-header">
         <div>
-          <h1>Workspace Hub</h1>
-          <p id="welcomeUserSubtitle">Strumenti organizzati per funzione d'uso</p>
+          <h1 id="workspaceGreetingTitle">Workspace Hub</h1>
+          <p id="workspaceUserSubtitle">Strumenti personali organizzati per funzione d'uso</p>
         </div>
         <span class="badge" id="counterBadge">0 Strumenti attivi</span>
       </div>
@@ -276,29 +267,77 @@
           <span id="syncStatusText"><strong>Modalità Locale:</strong> dati salvati su questo browser</span>
         </div>
         <div class="top-actions">
+          <button type="button" class="btn" id="quickPullCloudBtn" style="display: none;">↓ Aggiorna</button>
           <button type="button" class="btn" id="quickSyncNowBtn">↑ Salva Ora</button>
         </div>
       </div>
 
       <div class="filter-bar" id="filterBar"></div>
-  <!-- Drawer 2: Profilo, Backup & Sincronizzazione GitHub Cloud -->
+
+      <p class="meta-tag" id="sectionPurposeCompact" style="display: none; margin-bottom: 18px;"></p>
+
+      <section class="tools-grid" id="toolsGrid"></section>
+    </main>
+  </div>
+
+  <!-- Drawer 1: Aggiungi Nuovo Strumento -->
+  <div class="drawer-overlay" id="drawerOverlay">
+    <div class="side-sheet">
+      <div>
+        <div class="sheet-header">
+          <h2>Aggiungi Strumento</h2>
+          <button type="button" class="btn" id="closeDrawerBtn">Chiudi</button>
+        </div>
+        <form id="addToolForm">
+          <div class="form-group">
+            <label for="toolTitle">Nome Strumento</label>
+            <input type="text" id="toolTitle" class="form-control" required placeholder="Es. Calcolatore Preventivi">
+          </div>
+          <div class="form-group">
+            <label for="toolCategory">Sezione (Funzione d'uso)</label>
+            <select id="toolCategory" class="form-control" required></select>
+          </div>
+          <div class="form-group">
+            <label for="toolBadge">Tag di Contesto (Badge)</label>
+            <input type="text" id="toolBadge" class="form-control" required placeholder="Es. Lavoro, Casa, Botanica">
+          </div>
+          <div class="form-group">
+            <label for="toolDesc">Descrizione</label>
+            <textarea id="toolDesc" class="form-control" rows="3" required placeholder="Cosa fa questo strumento..."></textarea>
+          </div>
+          <div class="form-group">
+            <label for="toolStatus">Stato</label>
+            <input type="text" id="toolStatus" class="form-control" placeholder="Es. Operativo">
+          </div>
+          <div class="form-group">
+            <label for="toolUrl">File Modulo</label>
+            <input type="text" id="toolUrl" class="form-control" value="./template-modulo.html">
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;"><span>Salva nel Browser</span></button>
+        </form>
+      </div>
+      <div style="margin-top: 20px; padding-top: 14px; border-top: var(--border-width) solid var(--color-border);">
+        <button type="button" class="btn" id="resetDefaultBtn" style="width: 100%;">Ripristina Strumenti Base</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Drawer 2: Profilo, Cloud GitHub, Backup File & EmailJS -->
   <div class="drawer-overlay" id="cloudDrawerOverlay">
     <div class="side-sheet">
       <div>
         <div class="sheet-header">
-          <h2>☁️ Profilo & Sync</h2>
-          <button class="btn" id="closeCloudDrawerBtn">Chiudi</button>
+          <h2>☁️ Profilo & Sincronizzazione</h2>
+          <button type="button" class="btn" id="closeCloudDrawerBtn">Chiudi</button>
         </div>
-        <p style="margin-bottom: 14px;">Salva o ripristina <strong>tutti i tuoi dati</strong> tramite file locale o repository GitHub.</p>
 
-        <!-- Sezione 1: Backup Locale Rapido -->
-        <div style="display: flex; flex-wrap: wrap; gap: 8px; padding-bottom: 16px; margin-bottom: 16px; border-bottom: 1.5px solid var(--color-border);">
-          <input type="file" id="importJsonInput" accept=".json" style="display: none;">
-          <button type="button" class="btn" id="exportJsonBtn" style="flex: 1 1 140px;">↓ Scarica Backup</button>
-          <button type="button" class="btn" id="importJsonBtn" style="flex: 1 1 140px;">↑ Importa File</button>
+        <h3 style="font-size: 10.5pt; color: var(--color-primary); margin-bottom: 8px;">1. Backup Locale (.json)</h3>
+        <div style="display: flex; gap: 8px; margin-bottom: 18px;">
+          <button type="button" class="btn" id="exportJsonBtn" style="flex: 1;">↓ Scarica Tutto</button>
+          <button type="button" class="btn" id="importJsonBtn" style="flex: 1;">↑ Carica File</button>
         </div>
-        
-        <!-- Sezione 2: Cloud GitHub Multi-Profilo -->
+
+        <h3 style="font-size: 10.5pt; color: var(--color-primary); margin-bottom: 8px; padding-top: 14px; border-top: var(--border-width) solid var(--color-border);">2. Cloud GitHub Multi-Profilo</h3>
         <form id="cloudConfigForm">
           <div class="form-group">
             <label for="ghOwner">Utente GitHub</label>
@@ -309,335 +348,62 @@
             <input type="text" id="ghRepo" class="form-control" value="Workspace-hub" required>
           </div>
           <div class="form-group">
-            <label for="ghFile">Nome File Profilo (es. backup-nome.json)</label>
-            <input type="text" id="ghFile" class="form-control" value="backup-workspace.json" required placeholder="backup-workspace.json">
+            <label for="ghFile">Nome File Profilo</label>
+            <input type="text" id="ghFile" class="form-control" value="backup-workspace.json" required placeholder="es. backup-marco.json">
           </div>
           <div class="form-group">
             <label for="ghToken">Chiave GitHub (Token)</label>
             <input type="password" id="ghToken" class="form-control" placeholder="github_pat_..." required>
           </div>
+          <label style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; cursor: pointer; font-weight: 600; font-size: 9pt;">
+            <input type="checkbox" id="ghAutoPullCheck" checked style="width: 18px; height: 18px; accent-color: var(--color-primary);">
+            <span>Aggiorna automaticamente dal Cloud all'apertura</span>
+          </label>
           <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px;">
             <button type="submit" class="btn" style="width: 100%;">Salva Chiavi nel Browser</button>
             <button type="button" class="btn" id="copyCloudShareLinkBtn" style="width: 100%;">🔗 Copia Link Accesso Cloud</button>
           </div>
         </form>
 
-        <div style="display: flex; flex-direction: column; gap: 10px; padding-top: 14px; border-top: 1.5px solid var(--color-border);">
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px;">
           <button type="button" class="btn btn-primary" id="pushToGithubCloudBtn" style="width: 100%;"><span>↑ Salva Tutti i Dati sul Cloud</span></button>
           <button type="button" class="btn" id="pullFromGithubCloudBtn" style="width: 100%;">↓ Scarica Dati dal Cloud</button>
         </div>
 
-        <!-- Sezione 3: Servizio Email (EmailJS) -->
-        <div style="margin-top: 18px; padding-top: 14px; border-top: 1.5px solid var(--color-border);">
-          <h2 style="font-size: 11pt;">✉️ Invio Email (EmailJS)</h2>
-          <p style="font-size: 8.5pt; margin-bottom: 10px;">Chiavi gratuite di <strong>emailjs.com</strong> per promemoria e codici conferma.</p>
-          <form id="emailServiceForm" style="display: flex; flex-direction: column; gap: 8px;">
-            <input type="text" id="ejsServiceId" class="form-control" placeholder="Service ID (es. service_xxxxx)">
-            <input type="text" id="ejsTemplateId" class="form-control" placeholder="Template ID (es. template_xxxxx)">
-            <input type="text" id="ejsPublicKey" class="form-control" placeholder="Public Key (es. user_xxxxx)">
+        <details style="padding-top: 14px; border-top: var(--border-width) solid var(--color-border);">
+          <summary style="font-weight: 700; color: var(--color-secondary); cursor: pointer; margin-bottom: 10px;">✉️ Configura Invio Email (EmailJS)</summary>
+          <form id="emailjsConfigForm">
+            <div class="form-group">
+              <label for="ejsServiceId">Service ID</label>
+              <input type="text" id="ejsServiceId" class="form-control" placeholder="service_xxxxxxx">
+            </div>
+            <div class="form-group">
+              <label for="ejsTemplateId">Template ID</label>
+              <input type="text" id="ejsTemplateId" class="form-control" placeholder="template_xxxxxxx">
+            </div>
+            <div class="form-group">
+              <label for="ejsPublicKey">Public Key</label>
+              <input type="text" id="ejsPublicKey" class="form-control" placeholder="xxxxxxxxxxxxxxx">
+            </div>
             <button type="submit" class="btn" style="width: 100%;">Salva Chiavi Email</button>
           </form>
-        </div>
+        </details>
       </div>
 
-      <div style="margin-top: 20px; padding-top: 14px; border-top: 1.5px solid var(--color-border); display: flex; flex-direction: column; gap: 8px;">
-        <span class="meta-tag" id="cloudLastSyncLabel">Stato: Modalità Locale</span>
-        <button type="button" class="btn" id="lockWorkspaceBtn" style="width: 100%;">🔒 Blocca / Schermata Iniziale</button>
-        <button type="button" class="btn" id="changePasscodeBtn" style="width: 100%;">Imposta / Cambia Password</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Drawer 2: Sincronizzazione Gratuita GitHub Cloud -->
-  <div class="drawer-overlay" id="cloudDrawerOverlay">
-    <div class="side-sheet">
-      <div>
-        <div class="sheet-header">
-          <h2>☁️ Sync GitHub Cloud</h2>
-          <button class="btn" id="closeCloudDrawerBtn">Chiudi</button>
-        </div>
-        <p style="margin-bottom: 16px;">Salva e ripristina automaticamente <strong>tutti i tuoi dati</strong> nel tuo repository GitHub gratuito.</p>
-        
-        <form id="cloudConfigForm">
-          <div class="form-group">
-            <label for="ghOwner">Utente GitHub</label>
-            <input type="text" id="ghOwner" class="form-control" value="sonomonade" required>
-          </div>
-          <div class="form-group">
-            <label for="ghRepo">Nome Repository</label>
-            <input type="text" id="ghRepo" class="form-control" value="Workspace-hub" required>
-          </div>
-          <div class="form-group">
-            <label for="ghFile">Nome File Profilo (es. backup-nome.json)</label>
-            <input type="text" id="ghFile" class="form-control" value="backup-workspace.json" required placeholder="backup-workspace.json">
-          </div>
-          <div class="form-group">
-            <label for="ghToken">Chiave GitHub (Token)</label>
-            <input type="password" id="ghToken" class="form-control" placeholder="github_pat_..." required>
-          </div>
-          <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px;">
-            <button type="submit" class="btn" style="width: 100%;">Salva Chiavi nel Browser</button>
-            <button type="button" class="btn" id="copyCloudShareLinkBtn" style="width: 100%;">🔗 Copia Link Accesso Cloud</button>
-          </div>
-        </form>
-
-        <div style="display: flex; flex-direction: column; gap: 12px; padding-top: 16px; border-top: 1.5px solid var(--color-border);">
-          <button type="button" class="btn btn-primary" id="pushToGithubCloudBtn" style="width: 100%;"><span>↑ Salva Tutti i Dati sul Cloud</span></button>
-          <button type="button" class="btn" id="pullFromGithubCloudBtn" style="width: 100%;">↓ Scarica Dati dal Cloud</button>
-        </div>
-
-        <!-- Configurazione Invio Email Reale (EmailJS Gratuito) -->
-        <div style="margin-top: 20px; padding-top: 16px; border-top: 3px solid var(--color-border);">
-          <h2 style="font-size: 11pt;">✉️ Servizio Invio Email (EmailJS)</h2>
-          <p style="font-size: 8.5pt; margin-bottom: 10px;">Opzionale: inserisci le chiavi gratuite di <strong>emailjs.com</strong> per spedire realmente l'email di conferma.</p>
-          <form id="emailServiceForm" style="display: flex; flex-direction: column; gap: 10px;">
-            <input type="text" id="ejsServiceId" class="form-control" placeholder="Service ID (es. service_xxxxx)">
-            <input type="text" id="ejsTemplateId" class="form-control" placeholder="Template ID (es. template_xxxxx)">
-            <input type="text" id="ejsPublicKey" class="form-control" placeholder="Public Key (es. user_xxxxx)">
-            <button type="submit" class="btn" style="width: 100%;">Salva Chiavi Email</button>
-          </form>
-        </div>
-      </div>
-
-      <div style="margin-top: 24px; padding-top: 16px; border-top: 3px solid var(--color-border); display: flex; flex-direction: column; gap: 10px;">
+      <div style="margin-top: 20px; padding-top: 14px; border-top: var(--border-width) solid var(--color-border); display: flex; flex-direction: column; gap: 8px;">
         <span class="meta-tag" id="cloudLastSyncLabel">Stato: Pronto</span>
-        <button type="button" class="btn" id="changePasscodeBtn" style="width: 100%;">Reimposta Registrazione Account</button>
+        <button type="button" class="btn" id="lockWorkspaceBtn" style="width: 100%;">🔒 Schermata Iniziale / Blocca</button>
+        <button type="button" class="btn" id="resetAccountBtn" style="width: 100%;">Rimuovi Password Locale</button>
       </div>
     </div>
   </div>
 
-  <div class="toast-box" id="toastBox">
+  <div class="toast-box" id="toastBox" role="status" aria-live="polite">
     <span class="toast-dot"></span>
     <span id="toastMessage">Operazione completata</span>
   </div>
 
   <script>
-    const AUTH_KEY = 'ws_single_account_auth';
-    const PENDING_AUTH_KEY = 'ws_pending_email_verification';
-    const SESSION_UNLOCK_KEY = 'ws_session_unlocked';
-    const EMAILJS_CFG_KEY = 'ws_emailjs_cfg';
-
-    async function hashPasscode(text) {
-      if (window.crypto && window.crypto.subtle) {
-        const msgBuffer = new TextEncoder().encode(text.trim());
-        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-      }
-      return btoa(unescape(encodeURIComponent(text.trim())));
-    }
-
-    function generateSixDigitOtp() {
-      return String(Math.floor(100000 + Math.random() * 900000));
-    }
-
-    async function dispatchConfirmationEmail(toEmail, ownerName, otpCode) {
-      let ejsCfg = {};
-      try {
-        ejsCfg = JSON.parse(localStorage.getItem(EMAILJS_CFG_KEY) || '{}');
-      } catch (e) {}
-
-      if (ejsCfg.serviceId && ejsCfg.templateId && ejsCfg.publicKey) {
-    function updateSyncStatusBanner() {
-      const dot = document.getElementById('syncStatusDot');
-      const textEl = document.getElementById('syncStatusText');
-      const btnEl = document.getElementById('quickSyncNowBtn');
-      try {
-        const cfg = JSON.parse(localStorage.getItem(CLOUD_CFG_KEY) || '{}');
-        if (cfg.owner && cfg.repo && cfg.token) {
-          const fileLabel = getSanitizedCloudFileName(cfg.file);
-          dot.classList.add('cloud-active');
-          textEl.innerHTML = `<strong>Cloud Attivo (${fileLabel}):</strong> ${cfg.lastSync ? 'ultimo sync ' + cfg.lastSync : 'pronto per sincronizzare'}`;
-          btnEl.textContent = '↑ Sincronizza Cloud';
-          return;
-        }
-      } catch (e) {}
-      dot.classList.remove('cloud-active');
-      textEl.innerHTML = `<strong>Modalità Locale:</strong> dati salvati su questo browser`;
-      btnEl.textContent = '↓ Scarica Backup';
-    }
-
-    function initAuthGate() {
-      const gate = document.getElementById('authGate');
-      const welcomeView = document.getElementById('authWelcomeView');
-      const cloudRestoreForm = document.getElementById('authCloudRestoreForm');
-      const regForm = document.getElementById('authRegisterForm');
-      const verifyForm = document.getElementById('authVerifyForm');
-      const loginForm = document.getElementById('authLoginForm');
-
-      const authDataRaw = localStorage.getItem(AUTH_KEY);
-      const pendingRaw = localStorage.getItem(PENDING_AUTH_KEY);
-      const isUnlocked = sessionStorage.getItem(SESSION_UNLOCK_KEY) === 'true';
-
-      if (isUnlocked) {
-        gate.classList.add('hidden');
-        if (authDataRaw) {
-          const authData = JSON.parse(authDataRaw);
-          document.getElementById('welcomeUserSubtitle').textContent =
-            `Profilo protetto: ${authData.email} (${authData.owner})`;
-        } else {
-          document.getElementById('welcomeUserSubtitle').textContent =
-            `Sessione attiva • Strumenti organizzati per funzione d'uso`;
-        }
-        updateSyncStatusBanner();
-        return;
-      }
-
-      gate.classList.remove('hidden');
-      welcomeView.style.display = 'none';
-      cloudRestoreForm.style.display = 'none';
-      regForm.style.display = 'none';
-      verifyForm.style.display = 'none';
-      loginForm.style.display = 'none';
-
-      if (pendingRaw) {
-        const pending = JSON.parse(pendingRaw);
-        document.getElementById('authTitle').textContent = 'Conferma Email';
-        document.getElementById('authSubtitle').textContent = 'Inserisci il codice a 6 cifre';
-        document.getElementById('verifyTargetEmail').textContent = pending.email;
-
-        const sandboxBox = document.getElementById('otpSandboxNotice');
-        if (!pending.sentRealEmail) {
-          sandboxBox.style.display = 'block';
-          document.getElementById('otpSandboxCode').textContent = pending.otp;
-        } else {
-          sandboxBox.style.display = 'none';
-        }
-        verifyForm.style.display = 'flex';
-      } else if (authDataRaw) {
-        const authData = JSON.parse(authDataRaw);
-        document.getElementById('authTitle').textContent = 'Accesso Protetto';
-        document.getElementById('authSubtitle').textContent = 'Inserisci email e password registrate';
-        document.getElementById('loginEmailBadge').textContent = authData.email || authData.owner;
-        document.getElementById('loginEmailInput').value = authData.email || '';
-        loginForm.style.display = 'flex';
-      } else {
-        document.getElementById('authTitle').textContent = 'Workspace Hub';
-        document.getElementById('authSubtitle').textContent = 'Accesso rapido o ripristino profilo';
-        welcomeView.style.display = 'flex';
-      }
-    }
-
-    // Eventi Onboarding a 3 Vie
-    document.getElementById('quickEnterLocalBtn').addEventListener('click', () => {
-      sessionStorage.setItem(SESSION_UNLOCK_KEY, 'true');
-      initAuthGate();
-      showToast('Benvenuto nel tuo Workspace!');
-    });
-
-    document.getElementById('showQuickCloudRestoreBtn').addEventListener('click', () => {
-      document.getElementById('authWelcomeView').style.display = 'none';
-      document.getElementById('authCloudRestoreForm').style.display = 'flex';
-      document.getElementById('authTitle').textContent = 'Ripristina da Cloud';
-      document.getElementById('authSubtitle').textContent = 'Collegati al tuo file su GitHub';
-    });
-
-    document.getElementById('backFromCloudRestoreBtn').addEventListener('click', () => {
-      initAuthGate();
-    });
-
-    document.getElementById('authCloudRestoreForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const owner = document.getElementById('welcomeGhOwner').value.trim();
-      const repo = document.getElementById('welcomeGhRepo').value.trim();
-      const file = getSanitizedCloudFileName(document.getElementById('welcomeGhFile').value);
-      const token = document.getElementById('welcomeGhToken').value.trim();
-
-      localStorage.setItem(CLOUD_CFG_KEY, JSON.stringify({ owner, repo, file, token }));
-      loadCloudConfig();
-      const ok = await pullAllDataFromGithub();
-      if (ok) {
-        sessionStorage.setItem(SESSION_UNLOCK_KEY, 'true');
-        initAuthGate();
-      }
-    });
-
-    document.getElementById('welcomeImportFileBtn').addEventListener('click', () => {
-      document.getElementById('welcomeImportFileInput').click();
-    });
-
-    document.getElementById('welcomeImportFileInput').addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = async (ev) => {
-        try {
-          const parsed = JSON.parse(ev.target.result);
-          if (parsed && parsed.backupType === 'workspace-hub-full') {
-            restoreAllWorkspaceData(parsed);
-          } else if (parsed && Array.isArray(parsed.sections) && Array.isArray(parsed.tools)) {
-            workspaceState = parsed;
-            localStorage.setItem('ws_dashboard_state', JSON.stringify(workspaceState));
-          }
-          sessionStorage.setItem(SESSION_UNLOCK_KEY, 'true');
-          await initData();
-          showToast('Gestionale caricato dal file di backup!');
-        } catch (err) {
-          showToast('File JSON non valido');
-        }
-      };
-      reader.readAsText(file);
-    });
-
-    document.getElementById('showOptionalRegisterBtn').addEventListener('click', () => {
-      document.getElementById('authWelcomeView').style.display = 'none';
-      document.getElementById('authRegisterForm').style.display = 'flex';
-      document.getElementById('authTitle').textContent = 'Proteggi Dispositivo';
-      document.getElementById('authSubtitle').textContent = 'Imposta password personale';
-    });
-
-    document.getElementById('backFromRegisterBtn').addEventListener('click', () => {
-      initAuthGate();
-    });
-
-    document.getElementById('authLoginForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const inputEmail = document.getElementById('loginEmailInput').value.trim().toLowerCase();
-      const inputPass = document.getElementById('loginPasscode').value;
-      const errEl = document.getElementById('loginErrorMsg');
-      const authData = JSON.parse(localStorage.getItem(AUTH_KEY) || '{}');
-      const inputHash = await hashPasscode(inputPass);
-
-      const emailMatches = !authData.email || inputEmail === authData.email.toLowerCase();
-      if (emailMatches && inputHash === authData.hash) {
-        errEl.style.display = 'none';
-        sessionStorage.setItem(SESSION_UNLOCK_KEY, 'true');
-        e.target.reset();
-        initAuthGate();
-        showToast('Accesso effettuato');
-      } else {
-        errEl.style.display = 'block';
-      }
-    });
-
-    document.getElementById('lockWorkspaceBtn').addEventListener('click', () => {
-      sessionStorage.removeItem(SESSION_UNLOCK_KEY);
-      initAuthGate();
-      showToast('Workspace bloccato');
-    });
-
-    document.getElementById('changePasscodeBtn').addEventListener('click', () => {
-      localStorage.removeItem(AUTH_KEY);
-      localStorage.removeItem(PENDING_AUTH_KEY);
-      sessionStorage.removeItem(SESSION_UNLOCK_KEY);
-      document.getElementById('cloudDrawerOverlay').classList.remove('open');
-      initAuthGate();
-      document.getElementById('authWelcomeView').style.display = 'none';
-      document.getElementById('authRegisterForm').style.display = 'flex';
-      showToast('Imposta la nuova protezione');
-    });
-
-    document.getElementById('emailServiceForm').addEventListener('submit', (e) => {
-      e.preventDefault();
-      localStorage.setItem(EMAILJS_CFG_KEY, JSON.stringify({
-        serviceId: document.getElementById('ejsServiceId').value.trim(),
-        templateId: document.getElementById('ejsTemplateId').value.trim(),
-        publicKey: document.getElementById('ejsPublicKey').value.trim()
-      }));
-      showToast('Configurazione invio email salvata');
-    });
-
-    // --- LOGICA DASHBOARD E MODULI ---
     const iconLibrary = {
       all: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#277584" stroke-width="2.2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>',
       operativita: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#277584" stroke-width="2.2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/></svg>',
@@ -647,48 +413,44 @@
     };
 
     const BUILTIN_DEFAULT_DATA = {
-      version: "2.5.0",
+      version: "2.5.1",
       sections: [
         {
           id: "operativita",
           label: "Operatività & Gestione",
           shortLabel: "Operatività",
           icon: "operativita",
-          purpose: "A cosa servono: Strumenti per pianificare attività, calcolare tariffe/preventivi e amministrare spese o scadenze.",
-          capabilities: "Cosa puoi farci: Calcolare importi, monitorare scadenze, aggiornare stati ed esportare CSV/JSON."
+          purpose: "Pianificazione attività, finanza personale, bollette e preventivi."
         },
         {
           id: "ai-automazione",
           label: "AI & Automazione",
           shortLabel: "AI & Flow",
           icon: "ai-automazione",
-          purpose: "A cosa servono: Strumenti per progettare, strutturare e riutilizzare system prompt, flussi operativi e checklist AI.",
-          capabilities: "Cosa puoi farci: Archiviare template di prompt, copiare istruzioni con un clic e standardizzare i flussi."
+          purpose: "System prompt XML, Skill/Gem e flussi operativi."
         },
         {
           id: "archivi",
           label: "Archivi & Conoscenza",
           shortLabel: "Archivi",
           icon: "archivi",
-          purpose: "A cosa servono: Strumenti per catalogare schede botaniche, impaginare documenti e consultare guide di riferimento.",
-          capabilities: "Cosa puoi farci: Stampare etichette botaniche, impaginare in pt ed esportare Word / Google Docs."
+          purpose: "Schede botaniche, tipografia in pt e guide tecniche."
         },
         {
           id: "didattica-lab",
           label: "Didattica & Lab",
           shortLabel: "Lab",
           icon: "didattica-lab",
-          purpose: "A cosa servono: Spazio dedicato a dispense formative, esercitazioni guidate e prototipi di nuovi moduli.",
-          capabilities: "Cosa puoi farci: Preparare materiali didattici e testare nuovi strumenti."
+          purpose: "Dispense formative, esercitazioni e prototipi."
         }
       ],
       tools: [
         {
           id: 1,
-          title: "Prompt & Workflow Builder",
+          title: "Prompt & XML Builder",
           category: "ai-automazione",
-          badge: "Prompt & Workflow",
-          desc: "Libreria strutturata di system prompt, template per automazioni AI e checklist di controllo qualità.",
+          badge: "Prompt & XML",
+          desc: "Compositore prompt strutturati con tag XML e archivio Skill / Gem.",
           status: "Operativo",
           url: "./prompt-builder.html"
         },
@@ -697,16 +459,16 @@
           title: "Gestione Attività & Preventivi",
           category: "operativita",
           badge: "Lavoro",
-          desc: "Calcolatore rapido tariffe, scadenzario consegne e modelli di preventivo pronti all'esportazione.",
+          desc: "Calcolatore rapido tariffe, scadenzario consegne e preventivi.",
           status: "Operativo",
           url: "./preventivi.html"
         },
         {
           id: 3,
-          title: "Finanza Personale, Utenze & Quote",
+          title: "Finanza Personale & Utenze",
           category: "operativita",
           badge: "Finanza & Casa",
-          desc: "Bollette ricorrenti, ripartizione spese condivise, flusso di cassa lavorativo e fondi di accantonamento.",
+          desc: "Bollette ricorrenti, ripartizione quote condivise, flussi di cassa e fondi.",
           status: "Operativo",
           url: "./finanza.html"
         },
@@ -715,7 +477,7 @@
           title: "Archivio Botanico & Stampa",
           category: "archivi",
           badge: "Botanica",
-          desc: "Catalogo personale con generatore di layout ottimizzati per etichette termiche e schede tecniche.",
+          desc: "Catalogo specie con generatore etichette termiche e schede colturali.",
           status: "Operativo",
           url: "./botanica.html"
         },
@@ -724,7 +486,7 @@
           title: "Note di Viaggio & Fotografia",
           category: "archivi",
           badge: "Fotografia",
-          desc: "Tracce itinerari, appunti sulla luce, checklist attrezzatura e selezione progetti personali.",
+          desc: "Tracce itinerari, appunti sulla luce, checklist attrezzatura e progetti.",
           status: "Archivio 2026",
           url: "./template-modulo.html"
         },
@@ -733,7 +495,7 @@
           title: "Knowledge Base & Guide",
           category: "archivi",
           badge: "Documenti",
-          desc: "Dispense, link utili, manuali rapidi e documentazione tecnica di riferimento quotidiano.",
+          desc: "Dispense, link utili, manuali rapidi e documentazione tecnica.",
           status: "Consultazione",
           url: "./template-modulo.html"
         },
@@ -742,7 +504,7 @@
           title: "Strumento Tipografico & Impaginazione",
           category: "archivi",
           badge: "Tipografia",
-          desc: "Calcolatore scale in pt, margini pagina, griglia a colonne ed esportazione Word / Google Docs.",
+          desc: "Calcolatore scale in pt, margini pagina, griglia ed esportazione Word / Docs.",
           status: "Operativo",
           url: "./tipografia.html"
         }
@@ -752,20 +514,289 @@
     let workspaceState = JSON.parse(JSON.stringify(BUILTIN_DEFAULT_DATA));
     let currentCategory = 'all';
 
+    const toolsGrid = document.getElementById('toolsGrid');
+    const searchInput = document.getElementById('searchInput');
+    const counterBadge = document.getElementById('counterBadge');
+    const filterBar = document.getElementById('filterBar');
+    const railNavItems = document.getElementById('railNavItems');
+    const toolCategorySelect = document.getElementById('toolCategory');
+
     function showToast(msg) {
       const toast = document.getElementById('toastBox');
       document.getElementById('toastMessage').textContent = msg;
       toast.style.display = 'flex';
-      setTimeout(() => { toast.style.display = 'none'; }, 3500);
+      setTimeout(() => { toast.style.display = 'none'; }, 3400);
     }
 
-    async function initData() {
+    // --- GESTIONE INGRESSO SNELITA ---
+    const AUTH_KEY = 'ws_user_account_v1';
+    const SESSION_UNLOCK_KEY = 'ws_session_unlocked';
+    const EMAILJS_CFG_KEY = 'ws_emailjs_cfg';
+    let pendingRegistration = null;
+
+    async function hashPassword(str) {
+      try {
+        const msgUint8 = new TextEncoder().encode(str);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+        return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+      } catch (e) {
+        return btoa(str);
+      }
+    }
+
+    function showAuthError(msg) {
+      const errEl = document.getElementById('authErrorMsg');
+      if (!msg) { errEl.style.display = 'none'; return; }
+      errEl.textContent = msg;
+      errEl.style.display = 'block';
+    }
+
+    function switchAuthView(viewName) {
+      showAuthError('');
+      document.getElementById('welcomeChoiceBox').style.display = viewName === 'welcome' ? 'block' : 'none';
+      document.getElementById('welcomeCloudForm').style.display = viewName === 'cloud' ? 'block' : 'none';
+      document.getElementById('loginForm').style.display = viewName === 'login' ? 'block' : 'none';
+      document.getElementById('registerStep1Form').style.display = viewName === 'reg1' ? 'block' : 'none';
+      document.getElementById('registerStep2Form').style.display = viewName === 'reg2' ? 'block' : 'none';
+    }
+
+    function unlockDashboard(profileName) {
+      sessionStorage.setItem(SESSION_UNLOCK_KEY, 'true');
+      document.getElementById('authGateOverlay').classList.remove('active');
+      if (profileName) {
+        document.getElementById('workspaceGreetingTitle').textContent = `Workspace di ${profileName}`;
+      }
+    }
+
+    function initAuthGate() {
+      const gate = document.getElementById('authGateOverlay');
+      const hasHashCloud = window.location.hash.includes('cloud=');
+
+      if (hasHashCloud) {
+        applyCloudLinkFromHash();
+        unlockDashboard('');
+        return;
+      }
+
+      if (sessionStorage.getItem(SESSION_UNLOCK_KEY) === 'true') {
+        gate.classList.remove('active');
+        try {
+          const savedAcc = JSON.parse(localStorage.getItem(AUTH_KEY) || 'null');
+          if (savedAcc && savedAcc.name) {
+            document.getElementById('workspaceGreetingTitle').textContent = `Workspace di ${savedAcc.name}`;
+          }
+        } catch (e) {}
+        return;
+      }
+
+      gate.classList.add('active');
+      switchAuthView('welcome');
+    }
+
+    // Pulsante Principale: Entra Subito!
+    document.getElementById('enterGuestImmediateBtn').addEventListener('click', () => {
+      let profileName = '';
+      try {
+        const savedAcc = JSON.parse(localStorage.getItem(AUTH_KEY) || 'null');
+        if (savedAcc && savedAcc.name) profileName = savedAcc.name;
+      } catch (e) {}
+      unlockDashboard(profileName);
+      showToast('Benvenuta nel Workspace Hub!');
+    });
+
+    document.getElementById('welcomeOpenCloudBtn').addEventListener('click', () => {
+      try {
+        const cfg = JSON.parse(localStorage.getItem(CLOUD_CFG_KEY) || '{}');
+        if (cfg.owner) document.getElementById('wGhOwner').value = cfg.owner;
+        if (cfg.repo) document.getElementById('wGhRepo').value = cfg.repo;
+        if (cfg.file) document.getElementById('wGhFile').value = cfg.file;
+        if (cfg.token) document.getElementById('wGhToken').value = cfg.token;
+      } catch (e) {}
+      switchAuthView('cloud');
+    });
+
+    document.getElementById('backFromCloudBtn').addEventListener('click', () => switchAuthView('welcome'));
+
+    document.getElementById('welcomeImportFileBtn').addEventListener('click', () => {
+      document.getElementById('importJsonInput').click();
+    });
+
+    document.getElementById('welcomeShowLoginBtn').addEventListener('click', () => {
+      try {
+        const savedAcc = JSON.parse(localStorage.getItem(AUTH_KEY) || 'null');
+        if (savedAcc && savedAcc.email) {
+          document.getElementById('loginEmail').value = savedAcc.email;
+          switchAuthView('login');
+        } else {
+          switchAuthView('reg1');
+        }
+      } catch (e) {
+        switchAuthView('reg1');
+      }
+    });
+
+    document.getElementById('backFromLoginBtn').addEventListener('click', () => switchAuthView('welcome'));
+    document.getElementById('backToWelcomeFromRegBtn').addEventListener('click', () => switchAuthView('welcome'));
+    document.getElementById('showRegisterViewBtn').addEventListener('click', () => switchAuthView('reg1'));
+    document.getElementById('backToStep1Btn').addEventListener('click', () => switchAuthView('reg1'));
+
+    document.getElementById('welcomeCloudForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const updated = {
+        owner: document.getElementById('wGhOwner').value.trim(),
+        repo: document.getElementById('wGhRepo').value.trim(),
+        file: getSanitizedCloudFileName(document.getElementById('wGhFile').value),
+        token: document.getElementById('wGhToken').value.trim(),
+        autoPull: true
+      };
+      localStorage.setItem(CLOUD_CFG_KEY, JSON.stringify(updated));
+      loadCloudConfig();
+      const ok = await pullAllDataFromGithub(false);
+      if (ok) unlockDashboard('');
+      else showAuthError('Impossibile scaricare il file: controlla Utente, Repository, Nome File o Chiave.');
+    });
+
+    document.getElementById('registerStep1Form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      showAuthError('');
+      const name = document.getElementById('regName').value.trim();
+      const email = document.getElementById('regEmail').value.trim().toLowerCase();
+      const pass = document.getElementById('regPassword').value;
+      const otp = String(Math.floor(100000 + Math.random() * 900000));
+      const passHash = await hashPassword(pass);
+
+      pendingRegistration = { name, email, passHash, otp };
+      document.getElementById('confirmTargetEmail').textContent = email;
+      switchAuthView('reg2');
+
+      const ejsCfg = JSON.parse(localStorage.getItem(EMAILJS_CFG_KEY) || '{}');
+      const demoBanner = document.getElementById('otpDemoBanner');
+
+      if (ejsCfg.serviceId && ejsCfg.templateId && ejsCfg.publicKey && window.emailjs) {
+        demoBanner.style.display = 'none';
+        try {
+          emailjs.init({ publicKey: ejsCfg.publicKey });
+          await emailjs.send(ejsCfg.serviceId, ejsCfg.templateId, {
+            to_name: name,
+            to_email: email,
+            otp_code: otp,
+            app_name: 'Workspace Hub'
+          });
+          showToast('Codice inviato via email!');
+        } catch (err) {
+          demoBanner.style.display = 'block';
+          demoBanner.textContent = `Codice di conferma: ${otp}`;
+        }
+      } else {
+        demoBanner.style.display = 'block';
+        demoBanner.textContent = `Codice di conferma: ${otp}`;
+      }
+    });
+
+    document.getElementById('registerStep2Form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (!pendingRegistration) return;
+      const enteredOtp = document.getElementById('regOtpInput').value.trim();
+      if (enteredOtp !== pendingRegistration.otp) {
+        showAuthError('Codice errato. Controlla e riprova.');
+        return;
+      }
+      const accountObj = {
+        name: pendingRegistration.name,
+        email: pendingRegistration.email,
+        passHash: pendingRegistration.passHash,
+        verifiedAt: new Date().toISOString()
+      };
+      localStorage.setItem(AUTH_KEY, JSON.stringify(accountObj));
+      pendingRegistration = null;
+      unlockDashboard(accountObj.name);
+      showToast(`Profilo protetto attivato: ${accountObj.name}`);
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      showAuthError('');
+      const savedAcc = JSON.parse(localStorage.getItem(AUTH_KEY) || 'null');
+      if (!savedAcc) {
+        showAuthError('Nessun account salvato su questo dispositivo.');
+        return;
+      }
+      const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+      const passHash = await hashPassword(document.getElementById('loginPassword').value);
+      if (email === savedAcc.email && passHash === savedAcc.passHash) {
+        document.getElementById('loginPassword').value = '';
+        unlockDashboard(savedAcc.name);
+        showToast(`Bentornata, ${savedAcc.name}!`);
+      } else {
+        showAuthError('Email o password non corretti.');
+      }
+    });
+
+    document.getElementById('lockWorkspaceBtn').addEventListener('click', () => {
+      sessionStorage.removeItem(SESSION_UNLOCK_KEY);
+      document.getElementById('cloudDrawerOverlay').classList.remove('open');
+      initAuthGate();
+    });
+
+    document.getElementById('resetAccountBtn').addEventListener('click', () => {
+      localStorage.removeItem(AUTH_KEY);
+      showToast('Password locale rimossa');
+    });
+
+    document.getElementById('emailjsConfigForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const cfg = {
+        serviceId: document.getElementById('ejsServiceId').value.trim(),
+        templateId: document.getElementById('ejsTemplateId').value.trim(),
+        publicKey: document.getElementById('ejsPublicKey').value.trim()
+      };
+      localStorage.setItem(EMAILJS_CFG_KEY, JSON.stringify(cfg));
+      showToast('Chiavi EmailJS salvate');
+    });
+
+    function updateSyncStatusBanner() {
+      const dot = document.getElementById('syncStatusDot');
+      const textEl = document.getElementById('syncStatusText');
+      const btnEl = document.getElementById('quickSyncNowBtn');
+      const pullBtnEl = document.getElementById('quickPullCloudBtn');
+      try {
+        const cfg = JSON.parse(localStorage.getItem(CLOUD_CFG_KEY) || '{}');
+        if (cfg.owner && cfg.repo && cfg.token) {
+          const fileLabel = getSanitizedCloudFileName(cfg.file);
+          dot.classList.add('cloud-active');
+          textEl.innerHTML = `<strong>Cloud (${fileLabel}):</strong> ${cfg.lastSync ? cfg.lastSync : 'pronto'}`;
+          btnEl.textContent = '↑ Salva Cloud';
+          pullBtnEl.style.display = 'inline-flex';
+          return;
+        }
+      } catch (e) {}
+      dot.classList.remove('cloud-active');
+      textEl.innerHTML = `<strong>Modalità Locale:</strong> dati salvati su questo browser`;
+      btnEl.textContent = '↓ Scarica Backup';
+      pullBtnEl.style.display = 'none';
+    }
+
+    // --- INIZIALIZZAZIONE DATI ---
+    async function initData(skipAutoPull = false) {
       initAuthGate();
 
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistrations().then(regs => {
           for (let reg of regs) reg.unregister();
         }).catch(() => {});
+      }
+
+      loadCloudConfig();
+
+      if (!skipAutoPull && sessionStorage.getItem(SESSION_UNLOCK_KEY) === 'true' && !sessionStorage.getItem('ws_auto_pulled_once')) {
+        try {
+          const cfg = JSON.parse(localStorage.getItem(CLOUD_CFG_KEY) || '{}');
+          if (cfg.owner && cfg.repo && cfg.token && cfg.autoPull !== false) {
+            sessionStorage.setItem('ws_auto_pulled_once', 'true');
+            await pullAllDataFromGithub(true);
+            return;
+          }
+        } catch (e) {}
       }
 
       let savedState = null;
@@ -792,36 +823,27 @@
           }
         }
       } catch (e) {}
-      document.getElementById('schemaVersionTag') && (document.getElementById('schemaVersionTag').textContent = 'v' + (workspaceState.version || '2.5.0'));
-      loadCloudConfig();
+
       updateSyncStatusBanner();
       renderNavigationAndFilters();
       renderGrid();
     }
 
     function updateSectionPurposeBanner() {
-      const titleEl = document.getElementById('sectionPurposeTitle');
-      const descEl = document.getElementById('sectionPurposeDesc');
-      const actionsEl = document.getElementById('sectionPurposeActions');
+      const compactEl = document.getElementById('sectionPurposeCompact');
+      if (!compactEl) return;
       if (currentCategory === 'all') {
-        titleEl.textContent = 'Panoramica Completa del Workspace';
-        descEl.textContent = 'A cosa serve: Riunisce in un unico hub tutti gli strumenti operativi, di automazione AI, archiviazione e didattica.';
-        actionsEl.textContent = 'Cosa puoi farci: Filtra, cerca o salva sul Cloud';
+        compactEl.style.display = 'none';
         return;
       }
       const activeSec = workspaceState.sections.find(s => s.id === currentCategory);
       if (activeSec) {
-        titleEl.textContent = activeSec.label;
-        descEl.textContent = activeSec.purpose || '';
-        actionsEl.textContent = activeSec.capabilities || '';
+        compactEl.style.display = 'block';
+        compactEl.textContent = activeSec.purpose || '';
       }
     }
 
     function renderNavigationAndFilters() {
-      const railNavItems = document.getElementById('railNavItems');
-      const filterBar = document.getElementById('filterBar');
-      const toolCategorySelect = document.getElementById('toolCategory');
-
       railNavItems.innerHTML = `<button class="nav-btn ${currentCategory === 'all' ? 'active' : ''}" data-filter="all"><span class="nav-icon-pill">${iconLibrary.all}</span><span class="nav-label">Tutti</span></button>`;
       workspaceState.sections.forEach(sec => {
         railNavItems.innerHTML += `<button class="nav-btn ${currentCategory === sec.id ? 'active' : ''}" data-filter="${sec.id}"><span class="nav-icon-pill">${iconLibrary[sec.icon] || iconLibrary.all}</span><span class="nav-label">${sec.shortLabel || sec.label}</span></button>`;
@@ -852,8 +874,7 @@
     }
 
     function renderGrid() {
-      const query = document.getElementById('searchInput').value.toLowerCase().trim();
-      const toolsGrid = document.getElementById('toolsGrid');
+      const query = searchInput.value.toLowerCase().trim();
       toolsGrid.innerHTML = '';
       let visibleCount = 0;
       workspaceState.tools.forEach(tool => {
@@ -867,27 +888,34 @@
           toolsGrid.appendChild(card);
         }
       });
-      document.getElementById('counterBadge').textContent = `${visibleCount} Strument${visibleCount === 1 ? 'o' : 'i'} attiv${visibleCount === 1 ? 'o' : 'i'}`;
+      counterBadge.textContent = `${visibleCount} Strument${visibleCount === 1 ? 'o' : 'i'} attiv${visibleCount === 1 ? 'o' : 'i'}`;
     }
 
+    // --- CLOUD GITHUB MULTI-PROFILO ---
     const CLOUD_CFG_KEY = 'ws_github_cloud_cfg';
 
+    function getSanitizedCloudFileName(rawName) {
+      let clean = (rawName || 'backup-workspace.json').trim().replace(/[^a-zA-Z0-9._-]/g, '-');
+      if (!clean.endsWith('.json')) clean += '.json';
+      return clean || 'backup-workspace.json';
+    }
+
     function applyCloudLinkFromHash() {
+      const hash = window.location.hash || '';
+      if (!hash.startsWith('#cloud=')) return;
       try {
-        if (window.location.hash && window.location.hash.startsWith('#cloud=')) {
-          const encoded = window.location.hash.slice(7);
-          const decoded = JSON.parse(decodeURIComponent(escape(atob(encoded))));
-          if (decoded && decoded.owner && decoded.repo && decoded.token) {
-            localStorage.setItem(CLOUD_CFG_KEY, JSON.stringify({
-              owner: decoded.owner,
-              repo: decoded.repo,
-              file: decoded.file || 'backup-workspace.json',
-              token: decoded.token
-            }));
-            sessionStorage.setItem(SESSION_UNLOCK_KEY, 'true');
-            history.replaceState(null, '', window.location.pathname + window.location.search);
-            showToast(`Chiavi Cloud caricate (${decoded.file || 'backup-workspace.json'})`);
-          }
+        const decoded = JSON.parse(decodeURIComponent(atob(hash.replace('#cloud=', ''))));
+        if (decoded && decoded.owner && decoded.repo && decoded.token) {
+          const cfg = {
+            owner: decoded.owner,
+            repo: decoded.repo,
+            file: getSanitizedCloudFileName(decoded.file),
+            token: decoded.token,
+            autoPull: true
+          };
+          localStorage.setItem(CLOUD_CFG_KEY, JSON.stringify(cfg));
+          history.replaceState(null, '', window.location.pathname);
+          showToast(`Profilo Cloud collegato (${cfg.file})!`);
         }
       } catch (e) {}
     }
@@ -900,6 +928,7 @@
         if (cfg.repo) document.getElementById('ghRepo').value = cfg.repo;
         if (cfg.file) document.getElementById('ghFile').value = cfg.file;
         if (cfg.token) document.getElementById('ghToken').value = cfg.token;
+        document.getElementById('ghAutoPullCheck').checked = cfg.autoPull !== false;
         if (cfg.lastSync) document.getElementById('cloudLastSyncLabel').textContent = 'Ultimo sync: ' + cfg.lastSync;
 
         const ejs = JSON.parse(localStorage.getItem(EMAILJS_CFG_KEY) || '{}');
@@ -917,6 +946,7 @@
         backupType: 'workspace-hub-full',
         exportedAt: new Date().toISOString(),
         accountAuth: JSON.parse(localStorage.getItem(AUTH_KEY) || 'null'),
+        emailjsCfg: JSON.parse(localStorage.getItem(EMAILJS_CFG_KEY) || 'null'),
         dashboard: JSON.parse(localStorage.getItem('ws_dashboard_state') || 'null'),
         finanza: JSON.parse(localStorage.getItem('ws_module_finanza') || 'null'),
         botanica: JSON.parse(localStorage.getItem('ws_module_botanica') || 'null'),
@@ -930,6 +960,7 @@
     function restoreAllWorkspaceData(parsed) {
       if (!parsed || typeof parsed !== 'object') return false;
       if (parsed.accountAuth) localStorage.setItem(AUTH_KEY, JSON.stringify(parsed.accountAuth));
+      if (parsed.emailjsCfg) localStorage.setItem(EMAILJS_CFG_KEY, JSON.stringify(parsed.emailjsCfg));
       if (parsed.dashboard) localStorage.setItem('ws_dashboard_state', JSON.stringify(parsed.dashboard));
       if (parsed.finanza) localStorage.setItem('ws_module_finanza', JSON.stringify(parsed.finanza));
       if (parsed.botanica) localStorage.setItem('ws_module_botanica', JSON.stringify(parsed.botanica));
@@ -938,11 +969,6 @@
       if (parsed.prompts) localStorage.setItem('ws_module_prompts', JSON.stringify(parsed.prompts));
       if (parsed.calendario) localStorage.setItem('ws_module_calendario', JSON.stringify(parsed.calendario));
       return true;
-    }
-
-    function getSanitizedCloudFileName(rawName) {
-      const clean = (rawName || 'backup-workspace.json').trim().replace(/[^a-zA-Z0-9._-]/g, '-');
-      return clean.endsWith('.json') ? clean : `${clean}.json`;
     }
 
     async function pushAllDataToGithub() {
@@ -958,45 +984,44 @@
         'Accept': 'application/vnd.github+json',
         'Content-Type': 'application/json'
       };
+
       try {
-        showToast(`Salvataggio ${targetFile} su GitHub Cloud...`);
+        showToast(`Salvataggio ${targetFile} su Cloud...`);
         let sha = undefined;
         const checkRes = await fetch(apiUrl, { headers });
         if (checkRes.ok) {
           const existing = await checkRes.json();
           sha = existing.sha;
         }
-        const putRes = await fetch(apiUrl, {
-          method: 'PUT',
-          headers,
-          body: JSON.stringify({
-            message: `Sync ${targetFile} (${new Date().toLocaleString('it-IT')})`,
-            content: utf8ToBase64(JSON.stringify(gatherAllWorkspaceData(), null, 2)),
-            ...(sha ? { sha } : {})
-          })
-        });
-        if (!putRes.ok) throw new Error('Errore API GitHub');
-        const nowLabel = `${targetFile} • ${new Date().toLocaleString('it-IT')}`;
+        const payload = {
+          message: `Sync ${targetFile} ` + new Date().toLocaleString('it-IT'),
+          content: utf8ToBase64(JSON.stringify(gatherAllWorkspaceData(), null, 2)),
+          ...(sha ? { sha } : {})
+        };
+        const putRes = await fetch(apiUrl, { method: 'PUT', headers, body: JSON.stringify(payload) });
+        if (!putRes.ok) throw new Error('Errore GitHub');
+
+        const nowLabel = new Date().toLocaleString('it-IT');
         cfg.lastSync = nowLabel;
         localStorage.setItem(CLOUD_CFG_KEY, JSON.stringify(cfg));
         document.getElementById('cloudLastSyncLabel').textContent = 'Ultimo sync: ' + nowLabel;
         updateSyncStatusBanner();
-        showToast(`Dati salvati in ${targetFile} sul Cloud!`);
+        showToast(`Salvato su ${targetFile}!`);
       } catch (err) {
         showToast('Errore sync: verifica Chiave o Repository');
       }
     }
 
-    async function pullAllDataFromGithub() {
+    async function pullAllDataFromGithub(isSilentAuto = false) {
       const cfg = JSON.parse(localStorage.getItem(CLOUD_CFG_KEY) || '{}');
       if (!cfg.owner || !cfg.repo || !cfg.token) {
-        showToast('Inserisci prima Utente, Repository e Chiave');
+        if (!isSilentAuto) showToast('Inserisci prima Utente, Repository e Chiave');
         return false;
       }
       const targetFile = getSanitizedCloudFileName(cfg.file);
       const apiUrl = `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${targetFile}?t=${Date.now()}`;
       try {
-        showToast(`Scaricamento ${targetFile} dal Cloud...`);
+        if (!isSilentAuto) showToast(`Scaricamento ${targetFile} dal Cloud...`);
         const res = await fetch(apiUrl, {
           headers: { 'Authorization': `Bearer ${cfg.token}`, 'Accept': 'application/vnd.github+json' }
         });
@@ -1004,14 +1029,62 @@
         const fileData = await res.json();
         const parsed = JSON.parse(base64ToUtf8(fileData.content));
         restoreAllWorkspaceData(parsed);
-        await initData();
-        showToast(`Profilo ${targetFile} ripristinato dal Cloud!`);
+        await initData(true);
+        showToast(isSilentAuto ? `Sincronizzato con ${targetFile}` : `Profilo ${targetFile} ripristinato dal Cloud!`);
         return true;
       } catch (err) {
-        showToast(`File ${targetFile} non trovato o Chiave non valida`);
+        if (isSilentAuto) {
+          await initData(true);
+        } else {
+          showToast(`File ${targetFile} non trovato o Chiave non valida`);
+        }
         return false;
       }
     }
+
+    const cloudDrawerOverlay = document.getElementById('cloudDrawerOverlay');
+    document.getElementById('openCloudDrawerBtn').addEventListener('click', () => cloudDrawerOverlay.classList.add('open'));
+    document.getElementById('closeCloudDrawerBtn').addEventListener('click', () => cloudDrawerOverlay.classList.remove('open'));
+    cloudDrawerOverlay.addEventListener('click', (e) => { if (e.target === cloudDrawerOverlay) cloudDrawerOverlay.classList.remove('open'); });
+
+    document.getElementById('cloudConfigForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const prev = JSON.parse(localStorage.getItem(CLOUD_CFG_KEY) || '{}');
+      const updated = {
+        ...prev,
+        owner: document.getElementById('ghOwner').value.trim(),
+        repo: document.getElementById('ghRepo').value.trim(),
+        file: getSanitizedCloudFileName(document.getElementById('ghFile').value),
+        token: document.getElementById('ghToken').value.trim(),
+        autoPull: document.getElementById('ghAutoPullCheck').checked
+      };
+      localStorage.setItem(CLOUD_CFG_KEY, JSON.stringify(updated));
+      updateSyncStatusBanner();
+      showToast(`Chiavi salvate (${updated.file})`);
+    });
+
+    document.getElementById('copyCloudShareLinkBtn').addEventListener('click', async () => {
+      const owner = document.getElementById('ghOwner').value.trim();
+      const repo = document.getElementById('ghRepo').value.trim();
+      const file = getSanitizedCloudFileName(document.getElementById('ghFile').value);
+      const token = document.getElementById('ghToken').value.trim();
+      if (!owner || !repo || !token) {
+        showToast('Compila prima Utente, Repository e Chiave');
+        return;
+      }
+      const sharePayload = btoa(encodeURIComponent(JSON.stringify({ owner, repo, file, token })));
+      const shareUrl = `${window.location.origin}${window.location.pathname}#cloud=${sharePayload}`;
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(shareUrl);
+        }
+        showToast(`Link accesso copiato per ${file}!`);
+      } catch (e) {
+        showToast('Copia non riuscita');
+      }
+    });
+
+    document.getElementById('quickPullCloudBtn').addEventListener('click', () => pullAllDataFromGithub(false));
 
     document.getElementById('quickSyncNowBtn').addEventListener('click', () => {
       const cfg = JSON.parse(localStorage.getItem(CLOUD_CFG_KEY) || '{}');
@@ -1023,9 +1096,9 @@
     });
 
     document.getElementById('pushToGithubCloudBtn').addEventListener('click', pushAllDataToGithub);
-    document.getElementById('pullFromGithubCloudBtn').addEventListener('click', pullAllDataFromGithub);
+    document.getElementById('pullFromGithubCloudBtn').addEventListener('click', () => pullAllDataFromGithub(false));
 
-    document.getElementById('searchInput').addEventListener('input', renderGrid);
+    searchInput.addEventListener('input', renderGrid);
     const drawerOverlay = document.getElementById('drawerOverlay');
     document.getElementById('openDrawerBtn').addEventListener('click', () => drawerOverlay.classList.add('open'));
     document.getElementById('closeDrawerBtn').addEventListener('click', () => drawerOverlay.classList.remove('open'));
@@ -1033,7 +1106,7 @@
 
     document.getElementById('addToolForm').addEventListener('submit', (e) => {
       e.preventDefault();
-      workspaceState.tools.unshift({
+      const newTool = {
         id: Date.now(),
         isCustom: true,
         title: document.getElementById('toolTitle').value.trim(),
@@ -1042,7 +1115,8 @@
         desc: document.getElementById('toolDesc').value.trim(),
         status: document.getElementById('toolStatus').value.trim() || 'Attivo',
         url: document.getElementById('toolUrl').value.trim() || './template-modulo.html'
-      });
+      };
+      workspaceState.tools.unshift(newTool);
       localStorage.setItem('ws_dashboard_state', JSON.stringify(workspaceState));
       e.target.reset();
       drawerOverlay.classList.remove('open');
@@ -1052,7 +1126,7 @@
 
     document.getElementById('resetDefaultBtn').addEventListener('click', async () => {
       localStorage.removeItem('ws_dashboard_state');
-      await initData();
+      await initData(true);
       drawerOverlay.classList.remove('open');
       showToast('Strumenti base ripristinati');
     });
@@ -1067,14 +1141,16 @@
           const parsed = JSON.parse(ev.target.result);
           if (parsed && parsed.backupType === 'workspace-hub-full') {
             restoreAllWorkspaceData(parsed);
-            await initData();
-            showToast('Backup completo di tutti i moduli importato!');
+            unlockDashboard(parsed.accountAuth?.name || '');
+            await initData(true);
+            showToast('Backup completo importato!');
           } else if (parsed && Array.isArray(parsed.sections) && Array.isArray(parsed.tools)) {
             workspaceState = parsed;
             localStorage.setItem('ws_dashboard_state', JSON.stringify(workspaceState));
+            unlockDashboard('');
             renderNavigationAndFilters();
             renderGrid();
-            showToast('Strumenti dashboard importati');
+            showToast('Elenco strumenti importato');
           }
         } catch (err) { showToast('Errore file JSON'); }
       };
@@ -1090,10 +1166,10 @@
       document.body.appendChild(a);
       a.click();
       a.remove();
-      showToast('Backup completo di tutti i moduli scaricato');
+      showToast('Backup completo scaricato');
     });
 
-    window.addEventListener('DOMContentLoaded', initData);
+    window.addEventListener('DOMContentLoaded', () => initData(false));
   </script>
 </body>
 </html>
